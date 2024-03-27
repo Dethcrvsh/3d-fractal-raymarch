@@ -1,11 +1,16 @@
-# set this variable to the director in which you saved the common files
-commondir = ../common/
-TARGETS = $(shell find -name "lab?-?.cpp" | sort)
+commondir = common/
+SRCS := $(wildcard *.cpp)
+OBJS := $(SRCS:.cpp=.o)
+TARGET = Fractals
 
-all: $(TARGETS:.cpp=)
+all: $(TARGET)
 
-%: %.cpp $(commondir)GL_utilities.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c
-	gcc -Wall -ggdb -o $@ -I$(commondir) -I../common/Linux -DGL_GLEXT_PROTOTYPES $< $(commondir)GL_utilities.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c -lXt -lX11 -lGL -lm -lstdc++
+$(TARGET): $(OBJS)
+	gcc -Wall -ggdb -o $@ $^ $(commondir)GL_utilities.c $(commondir)LoadTGA.c $(commondir)Linux/MicroGlut.c -I$(commondir) -I$(commondir)Linux -DGL_GLEXT_PROTOTYPES -lXt -lX11 -lGL -lm -lstdc++
 
-clean :
-	rm lab?-?
+%.o: %.cpp
+	gcc -c -Wall -ggdb -o $@ $< -I$(commondir) -I$(commondir)Linux -I../common/Linux -DGL_GLEXT_PROTOTYPES
+
+clean:
+	rm -f $(OBJS) $(TARGET)
+

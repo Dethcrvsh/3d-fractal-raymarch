@@ -6,6 +6,7 @@
 
 #include "GL_utilities.h"
 #include "MicroGlut.h"
+#include "test.h"
 // uses framework OpenGL
 // uses framework Cocoa
 
