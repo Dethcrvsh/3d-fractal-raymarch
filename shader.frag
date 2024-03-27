@@ -4,21 +4,12 @@ uniform ivec2 in_ScreenSize;
 out vec4 out_Color;
 
 
-float estimate_distance(const vec3 p)
+float estimate_distance(vec3 p)
 {
-    const vec3 center1 = vec3(0, 0, -30);
+    p.xy = mod(p.xy, 1) - vec2(0.5);
     const int radius1 = 10;
 
-    const vec3 center2 = vec3(7, 8, -22);
-    const int radius2 = 6;
-
-    float dist1 = distance(p, center1) - radius1;
-    float dist2 = distance(p, center2) - radius2;
- 
-    const float k = 6;
-    float h = max(k - abs(dist1 - dist2), 0) / k;
-
-    return min(dist1, dist2) - h*h*h*k*1/6.0;
+    return length(p) - 0.3;
 }
 
 vec4 get_hit_color(const int iter)
@@ -69,8 +60,8 @@ void main(void)
     uv.x = gl_FragCoord.x/in_ScreenSize.x + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
 
-    const vec3 camera = vec3(0, 0, 2);
-    vec3 ray_dir = normalize(vec3(uv, -1));
+    const vec3 camera = vec3(0, 0, 10);
+    vec3 ray_dir = normalize(vec3(uv.x, uv.y, -1));
 
     out_Color = ray_march(camera, ray_dir);
 }
