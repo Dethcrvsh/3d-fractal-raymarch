@@ -8,10 +8,30 @@ vec3 box_fold(const vec3 z, const float fold_limit)
     return clamp(z, -fold_limit, fold_limit) * 2 - z;
 }
 
+vec3 octahedral_symmetry_fold(vec3 z)
+{
+    z = abs(z);
+
+    if (z.x - z.y < 0)
+    {
+        z.xy = z.yx;
+    }
+    if (z.x - z.z < 0)
+    {
+        z.xz = z.zx;
+    }
+    if (z.y - z.z < 0)
+    {
+        z.yz = z.zy;
+    }
+
+    return z;
+}
+
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 20;
-    const float SCALE = 3.7;
+    const int MAX_ITER = 5;
+    const float SCALE = 1.2;
 
     vec3 z = p;
     float dr = 1.0;
@@ -19,7 +39,7 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-        z = box_fold(z, 1.9);
+        z = octahedral_symmetry_fold(z);
         z = z * SCALE + offset;
         dr = dr * abs(SCALE) + 1.0;
     }
@@ -39,7 +59,7 @@ vec4 get_bg_color()
 
 vec4 ray_march(const vec3 start, const vec3 dir)
 {
-    const float MIN_DIST = 0.05;
+    const float MIN_DIST = 0.1;
     const float MAX_DIST = 1000;
     const int MAX_ITER = 1024;
 
@@ -75,7 +95,7 @@ void main(void)
     uv.x = gl_FragCoord.x/in_ScreenSize.x + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
 
-    const vec3 camera = vec3(0, 0, 20);
+    const vec3 camera = vec3(0, 0, 30);
     vec3 ray_dir = normalize(vec3(uv.x, uv.y, -1));
 
     out_Color = ray_march(camera, ray_dir);
