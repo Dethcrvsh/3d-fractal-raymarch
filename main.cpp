@@ -7,8 +7,14 @@
 #include "GL_utilities.h"
 #include "MicroGlut.h"
 #include "LittleOBJLoader.h"
+#include <GL/glext.h>
 // uses framework OpenGL
 // uses framework Cocoa
+
+const int SCREEN_WIDTH = 600;
+const int SCREEN_HEIGHT = 600;
+
+GLuint program;
 
 // Globals
 // Data would normally be read from files
@@ -30,8 +36,6 @@ void init(void)
 {
     // vertex buffer object, used for uploading the geometry
     unsigned int vertex_buffer_obj_id;
-    // Reference to shader program
-    GLuint program;
 
     dumpInfo();
 
@@ -56,7 +60,8 @@ void init(void)
     glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0); 
     glEnableVertexAttribArray(glGetAttribLocation(program, "in_Position"));
 
-    // End of upload of geometry
+    // Send the screen size to the shader
+    glUniform2i(glGetUniformLocation(program, "in_ScreenSize"), SCREEN_WIDTH, SCREEN_HEIGHT);
 
     printError("init arrays");
 }
@@ -71,6 +76,8 @@ void display(void)
     glBindVertexArray(vertex_array_obj_id);	// Select VAO
     glDrawArrays(GL_TRIANGLES, 0, 6);	// draw object
 
+    // End of upload of geometry
+
     printError("display");
 
     glutSwapBuffers();
@@ -80,7 +87,7 @@ int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
     glutInitContextVersion(3, 2);
-    glutInitWindowSize(600, 600);
+    glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     glutCreateWindow ("GL3 white triangle example");
     glutDisplayFunc(display); 
     init ();
