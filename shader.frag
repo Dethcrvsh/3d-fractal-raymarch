@@ -6,10 +6,19 @@ out vec4 out_Color;
 
 float estimate_distance(const vec3 p)
 {
-    const vec3 center = vec3(0, 0, -30);
-    const int radius = 10;
+    const vec3 center1 = vec3(0, 0, -30);
+    const int radius1 = 10;
 
-    return distance(p, center) - radius;
+    const vec3 center2 = vec3(7, 8, -22);
+    const int radius2 = 6;
+
+    float dist1 = distance(p, center1) - radius1;
+    float dist2 = distance(p, center2) - radius2;
+ 
+    const float k = 6;
+    float h = max(k - abs(dist1 - dist2), 0) / k;
+
+    return min(dist1, dist2) - h*h*h*k*1/6.0;
 }
 
 vec4 get_hit_color(const int iter)
