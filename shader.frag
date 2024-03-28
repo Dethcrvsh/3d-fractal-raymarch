@@ -1,6 +1,9 @@
 #version 150
 
 uniform ivec2 in_ScreenSize;
+uniform mat4 in_CamRotX;
+uniform mat4 in_CamRotY;
+uniform vec3 in_CamPosition;
 out vec4 out_Color;
 
 vec3 box_fold(const vec3 z, const float fold_limit)
@@ -94,9 +97,7 @@ void main(void)
 
     uv.x = gl_FragCoord.x/in_ScreenSize.x + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
+    vec3 ray_dir= normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
 
-    const vec3 camera = vec3(0, 0, 30);
-    vec3 ray_dir = normalize(vec3(uv.x, uv.y, -1));
-
-    out_Color = ray_march(camera, ray_dir);
+    out_Color = ray_march(in_CamPosition, ray_dir);
 }

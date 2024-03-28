@@ -1,7 +1,7 @@
 // Lab 1-1.
 // This is the same as the first simple example in the course book,
 // but with a few error checks.
-// Remember to copy your file to a new on appropriate places during the lab so you keep old results.
+// Remember to cocam_pos.y your file to a new on appropriate places during the lab so you keep old results.
 // Note that the files "lab1-1.frag", "lab1-1.vert" are required.
 
 #include "GL_utilities.h"
@@ -66,8 +66,70 @@ void init(void)
     printError("init arrays");
 }
 
+const float MOVE_SPEED = 0.001;
+const float MOUSE_SENSATIVITY = 1000;
+vec3 cam_pos;
+vec2 cam_angel;
+
+float previous_time;
+
+
+void mouse_moved(int mx, int my) {
+  cam_angel.x -= (SCREEN_WIDTH/2 - mx) / MOUSE_SENSATIVITY;
+  cam_angel.y -= (SCREEN_HEIGHT/2 - my) / MOUSE_SENSATIVITY;
+  glutWarpPointer(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+}
+
 void display(void)
 {
+
+    // Handel time and delta time
+    GLfloat time = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+    float delta = time - previous_time;
+    previous_time = time;
+
+	// Handel movement relative to viewing direction
+    if (glutKeyIsDown('w')) {
+        cam_pos.x -= delta * sin(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
+        cam_pos.y -= delta * sin(cam_angel.y) * MOVE_SPEED;
+        cam_pos.z -= delta * cos(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown('a')) {
+        cam_pos.x -= delta * cos(cam_angel.x) * MOVE_SPEED;
+        cam_pos.z -= delta * sin(cam_angel.x) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown('s')) {
+        cam_pos.x += delta * sin(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
+        cam_pos.y += delta * sin(cam_angel.y) * MOVE_SPEED;
+        cam_pos.z += delta * cos(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown('d')) {
+        cam_pos.x += delta * cos(cam_angel.x) * MOVE_SPEED;
+        cam_pos.z += delta * sin(cam_angel.x) * MOVE_SPEED;
+    }
+
+	// Get camera rotation as matrix
+    GLfloat rotMatrix_x[] = {1.0f, 0.0f, 0.0f, 0.0f,
+						     0.0f, cos(-cam_angel.y), -sin(-cam_angel.y), 0.0f, 
+							 0.0f, sin(-cam_angel.y), cos(-cam_angel.y), 0.0f,
+						     0.0f, 0.0f, 0.0f, 1.0f};
+
+    GLfloat rotMatrix_y[] = {cos(-cam_angel.x),  0.0f, sin(-cam_angel.x), 0.0f, 
+						     0.0f, 1.0f, 0.0f, 0.0f,
+                             -sin(-cam_angel.x), 0.0f, cos(-cam_angel.x), 0.0f, 
+						     0.0f, 0.0f, 0.0f, 1.0f};
+
+	// Send camera data to shader
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotX"), 1, GL_TRUE,
+                     rotMatrix_x);
+
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotY"), 1, GL_TRUE,
+                     rotMatrix_y);
+    
+	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
+					cam_pos.x, cam_pos.y, cam_pos.z);
+
+
     printError("pre display");
 
     // clear the screen
@@ -88,8 +150,11 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     glutInitContextVersion(3, 2);
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-    glutCreateWindow ("GL3 white triangle example");
+    glutCreateWindow ("Raymarch fractal");
     glutDisplayFunc(display); 
+	glutRepeatingTimer(2);
+    glutPassiveMotionFunc(mouse_moved);
+  	glutHideCursor();
     init ();
     glutMainLoop();
     return 0;
