@@ -11,8 +11,8 @@
 // uses framework OpenGL
 // uses framework Cocoa
 
-const int SCREEN_WIDTH = 600;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 800;
 
 GLuint program;
 
@@ -66,7 +66,7 @@ void init(void)
     printError("init arrays");
 }
 
-const float MOVE_SPEED = 0.001;
+const float MOVE_SPEED = 0.01;
 const float MOUSE_SENSATIVITY = 1000;
 vec3 cam_pos;
 vec2 cam_angel;
@@ -77,6 +77,7 @@ float previous_time;
 void mouse_moved(int mx, int my) {
   cam_angel.x -= (SCREEN_WIDTH/2 - mx) / MOUSE_SENSATIVITY;
   cam_angel.y -= (SCREEN_HEIGHT/2 - my) / MOUSE_SENSATIVITY;
+  cam_angel.y = std::max((float)-M_PI/2, std::min(cam_angel.y, (float)M_PI/2));
   glutWarpPointer(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
 }
 
@@ -119,12 +120,30 @@ void display(void)
                              -sin(-cam_angel.x), 0.0f, cos(-cam_angel.x), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
+	time = time/1000;
+    GLfloat rotMatrix1[] = {cos(-time), 0.0f, sin(-time), 0.0f, 
+						     0.0f, 1.0f, 0.0f, 0.0f,
+                             -sin(-time), 0.0f, cos(-time), 0.0f, 
+						     0.0f, 0.0f, 0.0f, 1.0f};
+
+	time = time/1.4;
+    GLfloat rotMatrix2[] = {1.0f, 0.0f, 0.0f, 0.0f,
+						     0.0f, cos(-time), -sin(-time), 0.0f, 
+							 0.0f, sin(-time), cos(-time), 0.0f,
+						     0.0f, 0.0f, 0.0f, 1.0f};
+
 	// Send camera data to shader
     glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotX"), 1, GL_TRUE,
                      rotMatrix_x);
 
     glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotY"), 1, GL_TRUE,
                      rotMatrix_y);
+
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest1"), 1, GL_TRUE,
+                     rotMatrix1);
+
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest2"), 1, GL_TRUE,
+                     rotMatrix2);
     
 	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
 					cam_pos.x, cam_pos.y, cam_pos.z);

@@ -3,6 +3,8 @@
 uniform ivec2 in_ScreenSize;
 uniform mat4 in_CamRotX;
 uniform mat4 in_CamRotY;
+uniform mat4 in_RotTest1;
+uniform mat4 in_RotTest2;
 uniform vec3 in_CamPosition;
 out vec4 out_Color;
 
@@ -11,39 +13,56 @@ vec3 box_fold(const vec3 z, const float fold_limit)
     return clamp(z, -fold_limit, fold_limit) * 2 - z;
 }
 
-vec3 octahedral_symmetry_fold(vec3 z)
+vec3 octahedral_symmetry_fold(vec3 point)
 {
-    z = abs(z);
+    if (point.x - point.y < 0)
+    {
+	float temp = point.y;
+        point.y = -point.x;
+        point.x = -temp;
+    }
+    if (point.x - point.z < 0)
+    {
+	float temp = point.z;
+        point.z = -point.x;
+        point.x = -temp;
+    }
+    if (point.y - point.z < 0)
+    {
+	float temp = point.z;
+        point.z = -point.y;
+        point.y = -temp;
+    }
 
-    if (z.x - z.y < 0)
-    {
-        z.xy = z.yx;
-    }
-    if (z.x - z.z < 0)
-    {
-        z.xz = z.zx;
-    }
-    if (z.y - z.z < 0)
-    {
-        z.yz = z.zy;
-    }
-
-    return z;
+    return point;
 }
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 5;
-    const float SCALE = 1.2;
+    const int MAX_ITER = 10;
+    const float SCALE = 2.3;
+    const float BAILOUT = 10000;
 
     vec3 z = p;
     float dr = 1.0;
-    vec3 offset = p;
+    vec3 offset = vec3(1, 1, 2);
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-        z = octahedral_symmetry_fold(z);
-        z = z * SCALE + offset;
+    	z = box_fold(z, 2);
+	z = vec3(in_RotTest1* vec4(z, 1));
+	//z = octahedral_symmetry_fold(z);
+        z = z * SCALE + offset*SCALE;
+        dr = dr * abs(SCALE) + 1.0;
+
+    	z = box_fold(z, 3);
+        z = z * SCALE + offset*SCALE;
+	z = vec3(in_RotTest2* vec4(z, 1));
+        dr = dr * abs(SCALE) + 1.0;
+
+    	z = box_fold(z, 4);
+        z = z * SCALE + offset*SCALE;
+	z = vec3(in_RotTest2* vec4(z, 1));
         dr = dr * abs(SCALE) + 1.0;
     }
 
@@ -52,7 +71,7 @@ float estimate_distance(const vec3 p)
 
 vec4 get_hit_color(const int iter)
 {
-    return vec4(vec3(1.0, 0.0, 1.0) * pow(0.97, iter), 1.0);
+    return vec4(vec3(1.0, 0.0, 1.0) * max(0.3, pow(0.97, iter)), 1.0);
 }
 
 vec4 get_bg_color()
@@ -62,9 +81,9 @@ vec4 get_bg_color()
 
 vec4 ray_march(const vec3 start, const vec3 dir)
 {
-    const float MIN_DIST = 0.1;
+    const float MIN_DIST = 0.001;
     const float MAX_DIST = 1000;
-    const int MAX_ITER = 1024;
+    const int MAX_ITER = 64;
 
     float traveled_dist = 0;
 
@@ -97,7 +116,6 @@ void main(void)
 
     uv.x = gl_FragCoord.x/in_ScreenSize.x + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
-    vec3 ray_dir= normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
-
+    vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
     out_Color = ray_march(in_CamPosition, ray_dir);
 }
