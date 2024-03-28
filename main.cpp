@@ -69,7 +69,8 @@ void init(void)
 const float MOVE_SPEED = 0.01;
 const float MOUSE_SENSITIVITY = 1000;
 
-struct Camera {
+struct Camera
+{
     vec3 pos {};
     vec2 angle {};
 } camera;
@@ -77,7 +78,8 @@ struct Camera {
 float previous_time;
 
 
-void mouse_moved(int mx, int my) {
+void mouse_moved(int mx, int my)
+{
   camera.angle.x -= (SCREEN_WIDTH/2 - mx) / MOUSE_SENSITIVITY;
   camera.angle.y -= (SCREEN_HEIGHT/2 - my) / MOUSE_SENSITIVITY;
   camera.angle.y = std::max((float)-M_PI/2, std::min(camera.angle.y, (float)M_PI/2));

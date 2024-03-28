@@ -17,19 +17,19 @@ vec3 octahedral_symmetry_fold(vec3 point)
 {
     if (point.x - point.y < 0)
     {
-	float temp = point.y;
+    float temp = point.y;
         point.y = -point.x;
         point.x = -temp;
     }
     if (point.x - point.z < 0)
     {
-	float temp = point.z;
+    float temp = point.z;
         point.z = -point.x;
         point.x = -temp;
     }
     if (point.y - point.z < 0)
     {
-	float temp = point.z;
+    float temp = point.z;
         point.z = -point.y;
         point.y = -temp;
     }
@@ -49,20 +49,20 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-    	z = box_fold(z, 2);
-	z = vec3(in_RotTest1* vec4(z, 1));
-	//z = octahedral_symmetry_fold(z);
+        z = box_fold(z, 2);
+        z = vec3(in_RotTest1* vec4(z, 1));
+        //z = octahedral_symmetry_fold(z);
         z = z * SCALE + offset*SCALE;
         dr = dr * abs(SCALE) + 1.0;
 
-    	z = box_fold(z, 3);
+        z = box_fold(z, 3);
         z = z * SCALE + offset*SCALE;
-	z = vec3(in_RotTest2* vec4(z, 1));
+        z = vec3(in_RotTest2* vec4(z, 1));
         dr = dr * abs(SCALE) + 1.0;
 
-    	z = box_fold(z, 4);
+        z = box_fold(z, 4);
         z = z * SCALE + offset*SCALE;
-	z = vec3(in_RotTest2* vec4(z, 1));
+        z = vec3(in_RotTest2* vec4(z, 1));
         dr = dr * abs(SCALE) + 1.0;
     }
 
