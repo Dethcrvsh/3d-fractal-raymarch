@@ -80,8 +80,8 @@ float previous_time;
 
 void mouse_moved(int mx, int my)
 {
-  camera.angle.x -= (SCREEN_WIDTH/2 - mx) / MOUSE_SENSITIVITY;
-  camera.angle.y -= (SCREEN_HEIGHT/2 - my) / MOUSE_SENSITIVITY;
+  camera.angle.x -= (SCREEN_WIDTH/2.0 - mx) / MOUSE_SENSITIVITY;
+  camera.angle.y -= (SCREEN_HEIGHT/2.0 - my) / MOUSE_SENSITIVITY;
   camera.angle.y = std::max((float)-M_PI/2, std::min(camera.angle.y, (float)M_PI/2));
   glutWarpPointer(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
 }
