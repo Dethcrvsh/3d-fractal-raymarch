@@ -43,7 +43,7 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-	z = octahedral_symmetry_fold(z);
+	    z = octahedral_symmetry_fold(z);
         z = z * SCALE + offset*SCALE;
         dr = dr * abs(SCALE) + 1.0;
     }

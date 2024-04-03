@@ -1,7 +1,7 @@
 // Lab 1-1.
 // This is the same as the first simple example in the course book,
 // but with a few error checks.
-// Remember to cocam_pos.y your file to a new on appropriate places during the lab so you keep old results.
+// Remember to cocamera.pos.y your file to a new on appropriate places during the lab so you keep old results.
 // Note that the files "lab1-1.frag", "lab1-1.vert" are required.
 
 #include "GL_utilities.h"
@@ -11,7 +11,7 @@
 // uses framework OpenGL
 // uses framework Cocoa
 
-const int SCREEN_WIDTH = 800;
+const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 800;
 
 GLuint program;
@@ -67,86 +67,91 @@ void init(void)
 }
 
 const float MOVE_SPEED = 0.01;
-const float MOUSE_SENSATIVITY = 1000;
-vec3 cam_pos = vec3(0, 0, 5);
-vec2 cam_angel;
+const float MOUSE_SENSITIVITY = 1000;
+
+struct Camera
+{
+    vec3 pos {};
+    vec2 angle {};
+} camera;
 
 float previous_time;
 
 
-void mouse_moved(int mx, int my) {
-  cam_angel.x -= (SCREEN_WIDTH/2 - mx) / MOUSE_SENSATIVITY;
-  cam_angel.y -= (SCREEN_HEIGHT/2 - my) / MOUSE_SENSATIVITY;
-  cam_angel.y = std::max((float)-M_PI/2, std::min(cam_angel.y, (float)M_PI/2));
+void mouse_moved(int mx, int my)
+{
+  camera.angle.x -= (SCREEN_WIDTH/2.0 - mx) / MOUSE_SENSITIVITY;
+  camera.angle.y -= (SCREEN_HEIGHT/2.0 - my) / MOUSE_SENSITIVITY;
+  camera.angle.y = std::max((float)-M_PI/2, std::min(camera.angle.y, (float)M_PI/2));
   glutWarpPointer(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+}
+
+void do_movement(float const delta)
+{
+	//Handle movement relative to viewing direction
+    if (glutKeyIsDown('w')) {
+        camera.pos.x -= delta * sin(-camera.angle.x) * cos(-camera.angle.y) * MOVE_SPEED;
+        camera.pos.y -= delta * sin(camera.angle.y) * MOVE_SPEED;
+        camera.pos.z -= delta * cos(-camera.angle.x) * cos(-camera.angle.y) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown('a')) {
+        camera.pos.x -= delta * cos(camera.angle.x) * MOVE_SPEED;
+        camera.pos.z -= delta * sin(camera.angle.x) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown('s')) {
+        camera.pos.x += delta * sin(-camera.angle.x) * cos(-camera.angle.y) * MOVE_SPEED;
+        camera.pos.y += delta * sin(camera.angle.y) * MOVE_SPEED;
+        camera.pos.z += delta * cos(-camera.angle.x) * cos(-camera.angle.y) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown('d')) {
+        camera.pos.x += delta * cos(camera.angle.x) * MOVE_SPEED;
+        camera.pos.z += delta * sin(camera.angle.x) * MOVE_SPEED;
+    }
 }
 
 void display(void)
 {
-
-    // Handel time and delta time
+    // Handle time and delta time
     GLfloat time = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-    float delta = time - previous_time;
+    float const delta = time - previous_time;
     previous_time = time;
 
-	// Handel movement relative to viewing direction
-    if (glutKeyIsDown('w')) {
-        cam_pos.x -= delta * sin(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
-        cam_pos.y -= delta * sin(cam_angel.y) * MOVE_SPEED;
-        cam_pos.z -= delta * cos(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
-    }
-    if (glutKeyIsDown('a')) {
-        cam_pos.x -= delta * cos(cam_angel.x) * MOVE_SPEED;
-        cam_pos.z -= delta * sin(cam_angel.x) * MOVE_SPEED;
-    }
-    if (glutKeyIsDown('s')) {
-        cam_pos.x += delta * sin(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
-        cam_pos.y += delta * sin(cam_angel.y) * MOVE_SPEED;
-        cam_pos.z += delta * cos(-cam_angel.x) * cos(-cam_angel.y) * MOVE_SPEED;
-    }
-    if (glutKeyIsDown('d')) {
-        cam_pos.x += delta * cos(cam_angel.x) * MOVE_SPEED;
-        cam_pos.z += delta * sin(cam_angel.x) * MOVE_SPEED;
-    }
+    do_movement(delta);
 
 	// Get camera rotation as matrix
     GLfloat rotMatrix_x[] = {1.0f, 0.0f, 0.0f, 0.0f,
-						     0.0f, cos(-cam_angel.y), -sin(-cam_angel.y), 0.0f, 
-							 0.0f, sin(-cam_angel.y), cos(-cam_angel.y), 0.0f,
+						     0.0f, cos(-camera.angle.y), -sin(-camera.angle.y), 0.0f, 
+							 0.0f, sin(-camera.angle.y), cos(-camera.angle.y), 0.0f,
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    GLfloat rotMatrix_y[] = {cos(-cam_angel.x),  0.0f, sin(-cam_angel.x), 0.0f, 
+    GLfloat rotMatrix_y[] = {cos(-camera.angle.x),  0.0f, sin(-camera.angle.x), 0.0f, 
 						     0.0f, 1.0f, 0.0f, 0.0f,
-                             -sin(-cam_angel.x), 0.0f, cos(-cam_angel.x), 0.0f, 
+                             -sin(-camera.angle.x), 0.0f, cos(-camera.angle.x), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-	time = time/1000;
+    time = time/1000;
     GLfloat rotMatrix1[] = {cos(-time), 0.0f, sin(-time), 0.0f, 
 						     0.0f, 1.0f, 0.0f, 0.0f,
                              -sin(-time), 0.0f, cos(-time), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-	time = time/1.4;
+    time = time/1.4;
     GLfloat rotMatrix2[] = {1.0f, 0.0f, 0.0f, 0.0f,
 						     0.0f, cos(-time), -sin(-time), 0.0f, 
 							 0.0f, sin(-time), cos(-time), 0.0f,
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-	// Send camera data to shader
-    glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotX"), 1, GL_TRUE,
-                     rotMatrix_x);
+    // Send camera data to shader
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotX"), 1, GL_TRUE, rotMatrix_x);
 
-    glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotY"), 1, GL_TRUE,
-                     rotMatrix_y);
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotY"), 1, GL_TRUE, rotMatrix_y);
 
-    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest1"), 1, GL_TRUE,
-                     rotMatrix1);
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest1"), 1, GL_TRUE, rotMatrix1);
 
-    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest2"), 1, GL_TRUE,
-                     rotMatrix2);
-    
+    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest2"), 1, GL_TRUE, rotMatrix2);
+
 	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
-					cam_pos.x, cam_pos.y, cam_pos.z);
+        camera.pos.x, camera.pos.y, camera.pos.z);
 
 
     printError("pre display");
