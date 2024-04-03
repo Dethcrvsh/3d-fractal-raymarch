@@ -11,7 +11,7 @@
 // uses framework OpenGL
 // uses framework Cocoa
 
-const int SCREEN_WIDTH = 1200;
+const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 800;
 
 GLuint program;
@@ -68,7 +68,7 @@ void init(void)
 
 const float MOVE_SPEED = 0.01;
 const float MOUSE_SENSATIVITY = 1000;
-vec3 cam_pos;
+vec3 cam_pos = vec3(0, 0, 5);
 vec2 cam_angel;
 
 float previous_time;

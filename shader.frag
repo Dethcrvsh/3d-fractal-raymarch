@@ -15,23 +15,17 @@ vec3 box_fold(const vec3 z, const float fold_limit)
 
 vec3 octahedral_symmetry_fold(vec3 point)
 {
-    if (point.x - point.y < 0)
+    if (point.x + point.y < 0)
     {
-	float temp = point.y;
-        point.y = -point.x;
-        point.x = -temp;
+        point.xy = -point.yx;
     }
-    if (point.x - point.z < 0)
+    if (point.x + point.z < 0)
     {
-	float temp = point.z;
-        point.z = -point.x;
-        point.x = -temp;
+        point.xz = -point.zx;
     }
-    if (point.y - point.z < 0)
+    if (point.y + point.z < 0)
     {
-	float temp = point.z;
-        point.z = -point.y;
-        point.y = -temp;
+        point.yz = -point.zy;
     }
 
     return point;
@@ -40,29 +34,17 @@ vec3 octahedral_symmetry_fold(vec3 point)
 float estimate_distance(const vec3 p)
 {
     const int MAX_ITER = 10;
-    const float SCALE = 2.3;
+    const float SCALE = 2;
     const float BAILOUT = 10000;
 
     vec3 z = p;
     float dr = 1.0;
-    vec3 offset = vec3(1, 1, 2);
+    vec3 offset = vec3(0, 0, 0);
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-    	z = box_fold(z, 2);
-	z = vec3(in_RotTest1* vec4(z, 1));
-	//z = octahedral_symmetry_fold(z);
+	z = octahedral_symmetry_fold(z);
         z = z * SCALE + offset*SCALE;
-        dr = dr * abs(SCALE) + 1.0;
-
-    	z = box_fold(z, 3);
-        z = z * SCALE + offset*SCALE;
-	z = vec3(in_RotTest2* vec4(z, 1));
-        dr = dr * abs(SCALE) + 1.0;
-
-    	z = box_fold(z, 4);
-        z = z * SCALE + offset*SCALE;
-	z = vec3(in_RotTest2* vec4(z, 1));
         dr = dr * abs(SCALE) + 1.0;
     }
 
@@ -81,7 +63,7 @@ vec4 get_bg_color()
 
 vec4 ray_march(const vec3 start, const vec3 dir)
 {
-    const float MIN_DIST = 0.001;
+    const float MIN_DIST = 0.01;
     const float MAX_DIST = 1000;
     const int MAX_ITER = 64;
 
