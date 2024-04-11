@@ -33,7 +33,10 @@ unsigned int vertex_array_obj_id;
 
 ShaderInstance instance;
 
-float rotation = 0;
+float scale = 1;
+float rotation1 = 0;
+float rotation2 = 0;
+vec3 offset = vec3(0.5, -0.5, 0.5);
 
 void init(void)
 {
@@ -72,7 +75,10 @@ void init(void)
 
     printError("init arrays");
 
-	sgCreateSlider(100, 100, 500, &rotation, -M_PI, M_PI);
+	sgCreateSlider(100, 100, 500, &scale, -4, 4);
+	sgCreateSlider(100, 120, 500, &rotation1, -M_PI, M_PI);
+	sgCreateSlider(100, 140, 500, &rotation2, -M_PI, M_PI);
+	sgCreateSliderVec3Group(100, 160, 500, (float*)&offset, -4, 4);
 }
 
 const float MOVE_SPEED = 0.01;
@@ -138,15 +144,14 @@ void display(void)
                              -sin(-camera.angle.x), 0.0f, cos(-camera.angle.x), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    GLfloat rotMatrix1[] = {cos(-rotation), 0.0f, sin(-rotation), 0.0f, 
+    GLfloat rotMatrix1[] = {cos(-rotation1), 0.0f, sin(-rotation1), 0.0f, 
 						     0.0f, 1.0f, 0.0f, 0.0f,
-                             -sin(-rotation), 0.0f, cos(-rotation), 0.0f, 
+                             -sin(-rotation1), 0.0f, cos(-rotation1), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    time = 1.4;
     GLfloat rotMatrix2[] = {1.0f, 0.0f, 0.0f, 0.0f,
-						     0.0f, cos(-time), -sin(-time), 0.0f, 
-							 0.0f, sin(-time), cos(-time), 0.0f,
+						     0.0f, cos(-rotation2), -sin(-rotation2), 0.0f, 
+							 0.0f, sin(-rotation2), cos(-rotation2), 0.0f,
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
     // Send camera data to shader
@@ -160,6 +165,12 @@ void display(void)
 
 	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
         camera.pos.x, camera.pos.y, camera.pos.z);
+
+	glUniform3f(glGetUniformLocation(program, "in_Offset"),
+        offset.x, offset.y, offset.z);
+
+	glUniform1f(glGetUniformLocation(program, "in_Scale"),
+        scale);
 
 
     printError("pre display");

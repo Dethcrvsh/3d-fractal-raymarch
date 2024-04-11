@@ -6,6 +6,8 @@ uniform mat4 in_CamRotY;
 uniform mat4 in_RotTest1;
 uniform mat4 in_RotTest2;
 uniform vec3 in_CamPosition;
+uniform float in_Scale;
+uniform vec3 in_Offset;
 out vec4 out_Color;
 
 void plane_fold(inout vec4 z, const vec3 n, const float d)
@@ -55,21 +57,19 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 7;
-    const float SCALE = 3;
+    const int MAX_ITER = 10;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
     float dr = 1.0;
-    vec4 offset = vec4(0.5, -0.5, 0.5, 0);
 
     for (int i = 0; i < MAX_ITER; i++)
     {
 	box_fold(z, 1);
 	z = z * in_RotTest1;
 	z = z * in_RotTest2;
-        z = z * SCALE + offset*SCALE;
-        dr = dr * abs(SCALE) + 1.0;
+        z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
+        dr = dr * abs(in_Scale) + 1.0;
     }
 
     return length(z) / abs(dr);
