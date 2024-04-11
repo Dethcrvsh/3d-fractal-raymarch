@@ -8,42 +8,66 @@ uniform mat4 in_RotTest2;
 uniform vec3 in_CamPosition;
 out vec4 out_Color;
 
-vec3 box_fold(const vec3 z, const float fold_limit)
+void plane_fold(inout vec4 z, const vec3 n, const float d)
 {
-    return clamp(z, -fold_limit, fold_limit) * 2 - z;
+    z.xyz -= 2.0 * min(0.0, dot(z.xyz, n) - d) * n;
 }
 
-vec3 octahedral_symmetry_fold(vec3 point)
+void box_fold(inout vec4 z, const float fold_limit)
 {
-    if (point.x + point.y < 0)
-    {
-        point.xy = -point.yx;
-    }
-    if (point.x + point.z < 0)
-    {
-        point.xz = -point.zx;
-    }
-    if (point.y + point.z < 0)
-    {
-        point.yz = -point.zy;
-    }
+    z.xyz = clamp(z.xyz, -fold_limit, fold_limit) * 2 - z.xyz;
+}
 
-    return point;
+void octahedral_symmetry_fold(inout vec4 point, const float limit)
+{
+    point = abs(point);
+    if (point.x - point.y < limit)
+    {
+        point.xy = point.yx;
+    }
+    if (point.x - point.z < limit)
+    {
+        point.xz = point.zx;
+    }
+    if (point.y - point.z < limit)
+    {
+        point.yz = point.zy;
+    }
+}
+
+void sierpinskiFold(inout vec4 z, const float limit) {
+	z.xy -= min(z.x + z.y + limit, 0.0);
+	z.xz -= min(z.x + z.z + limit, 0.0);
+	z.yz -= min(z.y + z.z + limit, 0.0);
+}
+
+void mengerFold(inout vec4 z, const float limit) {
+	float a = min(z.x - z.y + limit, 0.0);
+	z.x -= a;
+	z.y += a;
+	a = min(z.x - z.z + limit, 0.0);
+	z.x -= a;
+	z.z += a;
+	a = min(z.y - z.z + limit, 0.0);
+	z.y -= a;
+	z.z += a;
 }
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 10;
-    const float SCALE = 2;
+    const int MAX_ITER = 7;
+    const float SCALE = 3;
     const float BAILOUT = 10000;
 
-    vec3 z = p;
+    vec4 z = vec4(p, 0);
     float dr = 1.0;
-    vec3 offset = vec3(0, 0, 0);
+    vec4 offset = vec4(0.5, -0.5, 0.5, 0);
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-	    z = octahedral_symmetry_fold(z);
+		box_fold(z, 1);
+		z = z * in_RotTest1;
+		z = z * in_RotTest2;
         z = z * SCALE + offset*SCALE;
         dr = dr * abs(SCALE) + 1.0;
     }

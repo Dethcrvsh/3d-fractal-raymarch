@@ -129,7 +129,7 @@ void display(void)
                              -sin(-camera.angle.x), 0.0f, cos(-camera.angle.x), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    time = time/1000;
+    time = 1000;
     GLfloat rotMatrix1[] = {cos(-time), 0.0f, sin(-time), 0.0f, 
 						     0.0f, 1.0f, 0.0f, 0.0f,
                              -sin(-time), 0.0f, cos(-time), 0.0f, 
