@@ -50,6 +50,9 @@ void init(void)
 
     instance = load_shaders("shader.vert", "shader.frag");
     program = instance.program;
+
+    // Example of how to insert content to shaders:
+    // insert_shader(instance, std::string(""), std::string("out_Color = vec4(0, 1, 1, 1);"));
     
     printError("init shader");
 
