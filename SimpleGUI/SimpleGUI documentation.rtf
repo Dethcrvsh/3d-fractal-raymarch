@@ -1,0 +1,285 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww16980\viewh15240\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b\fs36 \cf0 SimpleGUI documentation
+\f1\b0\fs24 \
+\
+Preliminary version 0.4 2022\
+\
+SimpleGUI is a small, very limited set of controls/widgets for OpenGL. Its main features are portability and compactness. It should fit any OpenGL user interface. It needs no system specific "adapters", and will not hook into your system in any offensive way (like taking over events).\
+\
+One reason to write this was that ImGUI has become popular, but has a lot of problems. It will not "play nice" but hooks into systems in totally unacceptable ways, and requires specific \'93backends\'94 for any UI system, which turned out to be a hard thing to do. It basically requires you to use one of the supported systems or you are out of luck. Pretty big, BTW. We are talking megabytes.\
+\
+Another option that sounded interesting was \'93NanoGUI\'94. Sounds like a nice and small thing? Wrong. 36 source files, even more header files, 336k source code. Much smaller than ImGUI but not very \'93nano\'94.\
+\
+I am sure they are a lot more powerful, but the designs, sizes and complexity are unacceptable for my use. So, I wrote SimpleGUI. It is indeed simple, basically a redesign of SimpleFont using its font system for storing shapes inline. A single 59k source file plus a small header file. Minimal dependencies, use from anything you want. And I still find it a bit bigger than I\'92d like. :)\
+\
+Changes for second version: Added color palettes.\
+Changes for version 0.3: Added pop-up menus.\
+Changes for version 0.4: Added steppers, multi-ilne strings and auto-placement.\
+Changes for version 0.4.1: Revised the button, added global scaling.\
+Change for 0.4.2: Fixed a bug in dragging.\
+Change for 0.4.3: Made a fix for M1 Macs.\
+Change for 0.5: Added C++ version of the demo. Made some adjustments for being more C++ friendly.\
+\
+
+\f0\b Open design choices
+\f1\b0 \
+\
+There are many open questions for the design. There are also many possible controls to add. Suggestions are welcome!\
+\
+
+\f0\b\fs36 Usage
+\f1\b0\fs24 \
+\
+For an application to use SimpleGUI, it should call the following functions at appropriate times:\
+\
+sgDraw when the scene is redrawn. This should be called last in your update function.\
+sgMouse when the mouse button is pressed or relesed.\
+sgMouseDrag when the mouse is moved while the button is pressed.\
+\
+The calls sgMouse and sgMouseDrag return 1 if they hit a SimpleGUI item, so you know if you should consider the event handled or not.\
+\
+You create all desired controls using the sgCreate* calls and provide pointers to the variables that you want they to control.\
+\
+
+\f0\b\fs36 Controls
+\f1\b0\fs24 \
+\
+SimpleGUI defines the following controls:\
+\
+Slider: A horizontal slider producing values either from 0 to 1 or a specified range.\
+ColorBox, ColorDrop: A square or drop shape that displays a color.\
+SliderColorGroup: Three sliders and a ColorDrop for producing an RGB color.\
+CheckBox: A checkbox producing the values 0 or 1.\
+StaticString: Just displays a string that can\'92t be changed.\
+DynamicString: Displays a string that can be changed.\
+DisplayInt: A string followed by an integer value as text.\
+DisplayFloat: A string followed by a float value as text.\
+Radio: A radio button that can be part of a radio group controlling an integer.\
+SliderVec3Group: Three sliders controlling a group of floats.\
+Button: One click and it calls a callback function.\
+ColorPalette: A fairly rich color palette.\
+SmallColorPalette: Same as above but smaller scale.\
+ColorClicker: A single item of a color palette, intended for making custom palettes.\
+Menu: A box that you click to get a menu.\
+Steppers: Triangular controls to step an integer upp and down.\
+\
+
+\f0\b Controlling variables
+\f1\b0\fs16 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\fs24 \cf0 \
+The fundamental principle of SimpleGUI is that all controls that provide values do so by writing to a variable that you pass the control when it is created. A slider is connected to a float, and when you change the slider, the variable changes. Controls that can control variables include the Slider, CheckBox, Radio and more.\
+\
+Note that if your variable changes for other reasons, the control will follow.\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b \cf0 Having a slider controlling a variable
+\f1\b0 \
+\
+A slider should be connected to a variable that it controls, but may also be controlled by. It can be created like this:\
+\
+sgCreateSlider(100, 100, 200, &v, 0, 1);\
+\
+The variable v will here be assigned values between 0 and 1. However, if v changes in other ways, the slider will follow the change accordingly. Thus, the slider can both be used to set a value and to illustrate it.\
+\
+
+\f0\b Creating strings
+\f1\b0 \
+\
+A static string can be passed a string defined in the call, like this:\
+\
+sgCreateStaticString(100, 100, \'93This is a string\'94);\
+\
+Such a string will only exist momentarily but sgCreateStaticString will copy it to an internal string. A dynamic string, however, must be passed a string that will remain in memory, like a global string, which you may change as you please. Then you can declare the string like this:\
+\
+char myString[] = \'93My string\'94,\
+\
+and you can create the control like this:\
+\
+sgCreateDynamicString(100, 100, myString);\
+\
+Multi-line strings are supported for these items. You can insert \\r in the text and then it will jump to the next line. The line spacing is controlled by glSetSpacing.\
+\
+sgSetSpacing(25);\
+\
+
+\f0\b Creating groups of radio buttons
+\f1\b0 \
+\
+Radio buttons are intended to work in groups. You can create a radio button group by having all refer to the same variable (the \'93variable\'94 argument), while having different reference numbers (the \'93index\'94 parameter). Example: You create three buttons, all passing the address of a number num (by passing &num), while giving them index 1, 2 and 3.\
+\
+sgCreateRadio(100, 100, &num, 1);\
+sgCreateRadio(100, 120, &num, 2);\
+sgCreateRadio(100, 140, &num, 3);\
+\
+Then num will be assigned the number 1, 2 or 3 when the radio buttons are selected, and the others will be deselected automatically since num no longer match their index.\
+\
+
+\f0\b Create palettes
+\f1\b0 \
+\
+You probably just want to call sgCreateSmallColorPalette, but there is also a larger version, plus the possibility to build your own using sgCreateColorClicker and sgCreateSmallColorClicker.\
+\
+sgCreateSmallColorPalette(40, 300, &testr, &testg, &testb);\
+\
+
+\f0\b Create buttons
+\f1\b0 \
+\
+The button is unique in SimpleGUI since it is the only control that uses a callback function, a function with no arguments, which is called when the button is clicked. This is also the only control that needs the mouse up event.\
+\
+sgCreateButton(150, 330, "RESET", HitButton);\
+\
+
+\f0\b Create menus
+\f1\b0 \
+\
+Call sgCreateMenu to make the menu header. Then you call sgCreateMenuItem for each item, where each item has a callback to a function with no arguments. This should be done as consequtive calls. Do not create other items between them.\
+\
+sgCreateMenu(40, 160, "Colors menu");\
+sgCreateMenuItem("Set to red", SetToRed);\
+sgCreateMenuItem("Set to green", SetToGreen);\
+sgCreateMenuItem("Set to blue", SetToBlue);\
+\
+
+\f0\b Controls that only display values
+\f1\b0 \
+\
+The following controls will display values but can not affect them: ColorBox, ColorDrop, DisplayInt, DisplayFloat. They will monitor the given variables and change their displayed value. Note: Never pass variables that are temporary, like local variables.\
+\
+
+\f0\b Auto-placement of controls
+\f1\b0 \
+\
+All calls above assumes that you want full control over placement. If you would rather have all controls lining up automatically, you can pass negative values for positions. Negative values make no sense so when you pass that, the previous value with be used, plus a spacing value for y, which you can control with sgSetSpacing.\
+\
+
+\f0\b\fs36 Background panel
+\f1\b0\fs24 \
+\
+SimpleGUI draws a rectangle enclosing all controls. By default, it is transparent so you can see any animations behind it. It is calculated from the size of all controls and adapts if they change.\
+\
+If you set the alpha to 0, it will not only not be visible, but all processing of it will stop so it will effectively be removed that way.\
+\
+The panel is moveable by click-and-drag. All controls are be placed relative to the panel. You can also place the panel to a specific position using sgSetPosition.\
+\
+
+\f0\b\fs36 Configurations
+\f1\b0\fs24 \
+\
+SimpleGUI has limited customization options, mostly for customizing colors: Frame, fill, slider fill (default and indiviually), background and text color.\
+\
+You can also configure the spacing of multi-line text and auto-placement (same value for both) and a scale factor that lets you scale up the GUI by a factor, typically 2 or 3 if you want enlarged controls.\
+\
+
+\f0\b\fs36 Demos
+\f1\b0\fs24 \
+\
+No code package/library is complete without demos, and they should be relatively simple!\
+\
+
+\f0\b SimpleGUIMiniDemo
+\f1\b0 \
+\
+A stripped-down introduction demo with just a single slider.\
+\
+
+\f0\b SimpleGUIDemo
+\f1\b0 \
+\
+Creates a wide selection of SimpleGUI controls, and nothing more, nothing behind it.\
+\
+
+\f0\b Phong bunny and friends + GUI\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \
+\'93Phong bunny and friends\'94 is a demo that originally demomstrates the use of multiple models and multiple shaders. Here all the models are controlled by GUI controls in various ways. One has its color set by sliders, one its rotation, and one can have its movement halted by a checkbox.\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b \cf0 psych teapot 2+ GUI\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \
+Psychedelic teapot is a long-time favourite even since I got started with shaders. This has only a single slider, but it does something more important: Is uses the return value from the SimpleGUI calls to decide if a mouse event is used by the GUI or if it should go to controlling the rotation of the teapot.\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b \cf0 put-lid-on-teapot\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \
+The teapot is back, but in a modified version with multiple parts that I made to demonstrate LittleOBJLoader. Here you get three sliders to position the lid.\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b\fs36 \cf0 API: Creating controls
+\f1\b0\fs24 \
+\
+int sgCreateSlider(int x, int y, int w, float *variable, float min, float max);\
+int sgCreateColorBox(int x, int y, float *r, float *g, float *b);\
+int sgCreateColorDrop(int x, int y, float *r, float *g, float *b);\
+void sgCreateSliderColorGroup(int x, int y, int w, float *r, float *g, float *b);\
+int sgCreateCheckBox(int x, int y, char *s, int *variable);\
+int sgCreateStaticString(int x, int y, char *s);\
+int sgCreateDynamicString(int x, int y, char *s);\
+int sgCreateDisplayInt(int x, int y, char *s, int *variable);\
+int sgCreateDisplayFloat(int x, int y, char *s, float *variable);\
+int sgCreateRadio(int x, int y, char *s, int *variable, int index);\
+void sgCreateSliderVec3Group(int x, int y, int w, float *v);\
+int sgCreateButton(int x, int y, char *s, NoArgProcPtr callback);\
+int sgCreateMenu(int x, int y, char *s);\
+int sgCreateMenuItem(char *s, NoArgProcPtr callback);\
+int sgCreateLeftStepper(int x, int y, int *variable);\
+int sgCreateRightStepper(int x, int y, int *variable);\
+void sgCreateSteppers(int x, int y, int *variable);\
+\
+Palettes;\
+\
+int sgCreateColorClicker(int x, int y, float r, float g, float b, float *dr, float *dg, float *db);\
+int sgCreateSmallColorClicker(int x, int y, float r, float g, float b, float *dr, float *dg, float *db);\
+void sgCreateColorPalette(int x, int y, float *dr, float *dg, float *db);\
+void sgCreateSmallColorPalette(int x, int y, float *dr, float *dg, float *db);\
+\
+Removal of items (not for multi-item controls since they are built from many items):\
+\
+void sgRemoveItem(int i)\
+\
+All the \'93Create\'94 calls will create the control in question and return its ID, except for control groups. sgRemoveItem will deactivate an item, for possible future re-use.\
+\
+
+\f0\b\fs32 API: Real-time calls
+\f1\b0\fs24 \
+\
+You need to call these from your program when you get updates or mouse events.\
+\
+void sgDraw();\
+int sgMouse(int x, int y);\
+int sgMouseDrag(int x, int y);\
+\
+
+\f0\b\fs32 API: Settings
+\f1\b0\fs24 \
+\
+Most settings control colors. sgSetBackgroundBorder and sgSetPosition controls the background panel.\
+\
+void sgSetFrameColor(float r, float g, float b);\
+void sgSetFillColor(float r, float g, float b);\
+void sgSetSliderFillColor(int sliderID, float r, float g, float b);\
+void sgSetSliderDefaultFillColor(float r, float g, float b);\
+void sgSetTextColor(float r, float g, float b);\
+void sgSetBackgroundColor(float r, float g, float b, float a);\
+void sgSetBackgroundBorder(int b);\
+void sgSetPosition(int x, int y);\
+void sgSetSpacing(int spacing);\
+void sgSetScale(int scale);\
+}

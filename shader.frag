@@ -65,9 +65,9 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-		box_fold(z, 1);
-		z = z * in_RotTest1;
-		z = z * in_RotTest2;
+	box_fold(z, 1);
+	z = z * in_RotTest1;
+	z = z * in_RotTest2;
         z = z * SCALE + offset*SCALE;
         dr = dr * abs(SCALE) + 1.0;
     }
