@@ -7,7 +7,9 @@
 #include "GL_utilities.h"
 #include "MicroGlut.h"
 #include "LittleOBJLoader.h"
+#include "shader.h"
 #include <GL/glext.h>
+#include <iostream>
 // uses framework OpenGL
 // uses framework Cocoa
 
@@ -32,6 +34,8 @@ GLfloat vertices[] =
 // vertex array object
 unsigned int vertex_array_obj_id;
 
+ShaderInstance instance;
+
 void init(void)
 {
     // vertex buffer object, used for uploading the geometry
@@ -44,8 +48,12 @@ void init(void)
     glDisable(GL_DEPTH_TEST);
     printError("GL inits");
 
-    // Load and compile shader
-    program = loadShaders("shader.vert", "shader.frag");
+    instance = load_shaders("shader.vert", "shader.frag");
+    program = instance.program;
+
+    // Example of how to insert content to shaders:
+    // insert_shader(instance, std::string(""), std::string("out_Color = vec4(0, 1, 1, 1);"));
+    
     printError("init shader");
 
     // Allocate and activate Vertex Array Object
