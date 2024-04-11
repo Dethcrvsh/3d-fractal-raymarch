@@ -57,7 +57,7 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 10;
+    const int MAX_ITER = 15;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
@@ -65,9 +65,9 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < MAX_ITER; i++)
     {
-	box_fold(z, 1);
-	z = z * in_RotTest1;
-	z = z * in_RotTest2;
+	    box_fold(z, 1);
+	    z = z * in_RotTest1;
+	    z = z * in_RotTest2;
         z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
         dr = dr * abs(in_Scale) + 1.0;
     }
@@ -75,23 +75,29 @@ float estimate_distance(const vec3 p)
     return length(z) / abs(dr);
 }
 
-vec4 get_hit_color(const int iter)
+vec4 get_hit_color(const int iter, const float distance_to_origin)
 {
-    return vec4(vec3(1.0, 0.0, 1.0) * max(0.3, pow(0.97, iter)), 1.0);
+    float gradient = min(10, distance_to_origin)/10;
+    vec3 color = vec3(1.0, 0.0, 1.0)*(gradient) + vec3(0.0, 0.0, 1.0)*(1 - gradient);
+    return vec4((color) * max(0.3, pow(0.97, iter)), 1.0);
 }
 
-vec4 get_bg_color()
+vec4 get_bg_color(const float closest_dist)
 {
-    return vec4(0.0, 0.0, 0.0, 1.0);
+    float gradient = min(0.5, closest_dist)/0.5;
+    vec3 color = vec3(0.0, 0.0, 0.0) * (gradient) + vec3(0.6, 0.0, 0.6) * (1-gradient);
+	return vec4(color, 1.0);
 }
 
 vec4 ray_march(const vec3 start, const vec3 dir)
 {
     const float MIN_DIST = 0.01;
     const float MAX_DIST = 1000;
-    const int MAX_ITER = 64;
+    const int MAX_ITER = 100;
 
     float traveled_dist = 0;
+	float smallest_dist = 1000000; // Very large number
+	
 
     for (int i = 0; i < MAX_ITER; i++)
     {
@@ -99,20 +105,22 @@ vec4 ray_march(const vec3 start, const vec3 dir)
 
         float closest_dist = estimate_distance(curr_pos);
 
+		smallest_dist = min(smallest_dist, closest_dist);
+
         if (closest_dist < MIN_DIST)
         {
-            return get_hit_color(i);        
+            return get_hit_color(i, length(curr_pos));        
         }
 
         if (closest_dist > MAX_DIST)
         {
-            return get_bg_color();
+            return get_bg_color(smallest_dist);
         }
 
         traveled_dist += closest_dist;
     }
 
-    return get_bg_color();
+    return get_bg_color(smallest_dist);
 }
 
 void main(void)
