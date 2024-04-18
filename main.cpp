@@ -1,8 +1,3 @@
-// Lab 1-1.
-// This is the same as the first simple example in the course book,
-// but with a few error checks.
-// Remember to cocamera.pos.y your file to a new on appropriate places during the lab so you keep old results.
-// Note that the files "lab1-1.frag", "lab1-1.vert" are required.
 
 #include "GL_utilities.h"
 #include "MicroGlut.h"
@@ -10,6 +5,8 @@
 #include "shader.h"
 #include <GL/glext.h>
 #include <iostream>
+#include "SimpleGUI.h"
+#include <math.h>
 // uses framework OpenGL
 // uses framework Cocoa
 
@@ -35,6 +32,11 @@ GLfloat vertices[] =
 unsigned int vertex_array_obj_id;
 
 ShaderInstance instance;
+
+float scale = 2;
+float rotation1 = 0;
+float rotation2 = 0;
+vec3 offset = vec3(0.0, 0.0, 0.0);
 
 void init(void)
 {
@@ -72,6 +74,11 @@ void init(void)
     glUniform2i(glGetUniformLocation(program, "in_ScreenSize"), SCREEN_WIDTH, SCREEN_HEIGHT);
 
     printError("init arrays");
+
+	sgCreateSlider(100, 100, 500, &scale, -4, 4);
+	sgCreateSlider(100, 120, 500, &rotation1, -M_PI, M_PI);
+	sgCreateSlider(100, 140, 500, &rotation2, -M_PI, M_PI);
+	sgCreateSliderVec3Group(100, 160, 500, (float*)&offset, -4, 4);
 }
 
 const float MOVE_SPEED = 0.01;
@@ -137,16 +144,14 @@ void display(void)
                              -sin(-camera.angle.x), 0.0f, cos(-camera.angle.x), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    time = 1000;
-    GLfloat rotMatrix1[] = {cos(-time), 0.0f, sin(-time), 0.0f, 
+    GLfloat rotMatrix1[] = {cos(-rotation1), 0.0f, sin(-rotation1), 0.0f, 
 						     0.0f, 1.0f, 0.0f, 0.0f,
-                             -sin(-time), 0.0f, cos(-time), 0.0f, 
+                             -sin(-rotation1), 0.0f, cos(-rotation1), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    time = time/1.4;
     GLfloat rotMatrix2[] = {1.0f, 0.0f, 0.0f, 0.0f,
-						     0.0f, cos(-time), -sin(-time), 0.0f, 
-							 0.0f, sin(-time), cos(-time), 0.0f,
+						     0.0f, cos(-rotation2), -sin(-rotation2), 0.0f, 
+							 0.0f, sin(-rotation2), cos(-rotation2), 0.0f,
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
     // Send camera data to shader
@@ -161,6 +166,12 @@ void display(void)
 	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
         camera.pos.x, camera.pos.y, camera.pos.z);
 
+	glUniform3f(glGetUniformLocation(program, "in_Offset"),
+        offset.x, offset.y, offset.z);
+
+	glUniform1f(glGetUniformLocation(program, "in_Scale"),
+        scale);
+
 
     printError("pre display");
 
@@ -174,7 +185,19 @@ void display(void)
 
     printError("display");
 
+	sgDraw();
+
     glutSwapBuffers();
+}
+
+void mouse(int button, int state, int x, int y)
+{
+	if (button == 0) sgMouse(state, x, y);
+}
+
+void drag(int x, int y)
+{
+	sgMouseDrag(x, y);
 }
 
 int main(int argc, char *argv[])
@@ -184,10 +207,11 @@ int main(int argc, char *argv[])
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     glutCreateWindow ("Raymarch fractal");
     glutDisplayFunc(display); 
-	glutRepeatingTimer(2);
-    glutPassiveMotionFunc(mouse_moved);
-  	glutHideCursor();
-    init ();
+    glutRepeatingTimer(4);
+    //glutPassiveMotionFunc(mouse_moved);
+    glutMouseFunc(mouse);
+    glutMotionFunc(drag);
+    //glutHideCursor();
+    init();
     glutMainLoop();
-    return 0;
 }
