@@ -65,7 +65,7 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 15;
+    const int MAX_ITER = 12;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
@@ -83,51 +83,8 @@ float estimate_distance(const vec3 p)
     return length(z) / abs(dr);
 }
 
-vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
+MarchResult ray_march(const vec3 start, const vec3 dir, const float MIN_DIST)
 {
-    // Calculate color from distance to origin
-    float gradient = min(10, length(curr_pos))/10;
-    vec3 color = vec3(1.0, 0.0, 1.0)*(gradient) + vec3(0.0, 0.0, 1.0)*(1 - gradient);
-
-    // Calculate ambient occlusion
-    vec4 amb_color = vec4((color) * max(0.3, pow(0.97, iter)), 1.0);
-
-    // Calculate color
-	const float STEP_LEN = 0.005;
-    const float REFLECTION_DIF = 0.7;
-    const float REFLECTION_SPEC = 0.9;
-    const vec3 LIGHT_DIR = normalize(vec3(1, 1, 1));
-    const float INTENSITY_DIF = 1.0;
-    const float INTENSITY_AMB = 1.0;
-    const float INTENSITY_SPEC = 1.0;
-    const float ALPHA = 20;
-
-    // Normals
-    float x_norm = estimate_distance(curr_pos + vec3(0,0,STEP_LEN)) - estimate_distance(curr_pos - vec3(0,0,STEP_LEN));
-    float y_norm = estimate_distance(curr_pos + vec3(0,STEP_LEN,0)) - estimate_distance(curr_pos - vec3(0,STEP_LEN,0));
-    float z_norm = estimate_distance(curr_pos + vec3(STEP_LEN,0,0)) - estimate_distance(curr_pos - vec3(STEP_LEN,0,0));
-	vec3 normal = normalize(vec3(x_norm, y_norm, z_norm));
-
-    vec3 reflection_angle = 2*normal * dot(LIGHT_DIR, normal) - LIGHT_DIR;
-
-    // Light componenets
-    float amb_ligth = REFLECTION_DIF * INTENSITY_AMB;
-    float dif_light = REFLECTION_DIF * INTENSITY_DIF * max(0, dot(normal, LIGHT_DIR));
-    float spec_light = REFLECTION_SPEC * INTENSITY_SPEC * pow(max(0, dot(reflection_angle, dir)), ALPHA);
-
-	return amb_color * (amb_ligth + dif_light + spec_light);
-}
-
-vec4 get_bg_color(const float closest_dist)
-{
-    float gradient = min(0.5, closest_dist)/0.5;
-    vec3 color = vec3(0.0, 0.0, 0.0) * (gradient) + vec3(0.6, 0.0, 0.6) * (1-gradient);
-	return vec4(color, 1.0);
-}
-
-MarchResult ray_march(const vec3 start, const vec3 dir)
-{
-    const float MIN_DIST = 0.001;
     const float MAX_DIST = 1000;
     const int MAX_ITER = 100;
 
@@ -162,6 +119,56 @@ MarchResult ray_march(const vec3 start, const vec3 dir)
     return MarchResult(did_hit, i, curr_pos, smallest_dist);
 }
 
+vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
+{
+    // Calculate color from distance to origin
+    float gradient = min(10, length(curr_pos))/10;
+    vec3 color = vec3(1.0, 0.0, 1.0)*(gradient) + vec3(0.0, 0.0, 1.0)*(1 - gradient);
+
+    // Calculate ambient occlusion
+    vec4 amb_color = vec4((color) * max(0.3, pow(0.97, iter)), 1.0);
+
+    // Calculate color
+	const float STEP_LEN = 0.005;
+    const float REFLECTION_DIF = 0.7;
+    const float REFLECTION_SPEC = 0.9;
+    const vec3 LIGHT_DIR = normalize(vec3(-1, -0.5, 1));
+    const float INTENSITY_DIF = 1.0;
+    const float INTENSITY_AMB = 1.0;
+    const float INTENSITY_SPEC = 1.0;
+    const float ALPHA = 20;
+
+    // Normals
+    float x_norm = estimate_distance(curr_pos + vec3(0,0,STEP_LEN)) - estimate_distance(curr_pos - vec3(0,0,STEP_LEN));
+    float y_norm = estimate_distance(curr_pos + vec3(0,STEP_LEN,0)) - estimate_distance(curr_pos - vec3(0,STEP_LEN,0));
+    float z_norm = estimate_distance(curr_pos + vec3(STEP_LEN,0,0)) - estimate_distance(curr_pos - vec3(STEP_LEN,0,0));
+	vec3 normal = normalize(vec3(x_norm, y_norm, z_norm));
+
+    vec3 reflection_angle = 2*normal * dot(-LIGHT_DIR, normal) - (-LIGHT_DIR);
+
+    // Light componenets
+    float amb_ligth = REFLECTION_DIF * INTENSITY_AMB;
+    float dif_light = REFLECTION_DIF * INTENSITY_DIF * max(0, dot(normal, -LIGHT_DIR));
+    float spec_light = REFLECTION_SPEC * INTENSITY_SPEC * pow(max(0, dot(reflection_angle, dir)), ALPHA);
+
+    // Calculate shadows
+    MarchResult result = ray_march(curr_pos, LIGHT_DIR, 0.00001);
+    float shadow = 1.0;
+    if(result.did_hit){
+        shadow = 0.2;
+        spec_light = 0.0;
+    }
+
+	return amb_color * (amb_ligth + dif_light + spec_light) * shadow;
+}
+
+vec4 get_bg_color(const float closest_dist)
+{
+    float gradient = min(0.5, closest_dist)/0.5;
+    vec3 color = vec3(0.0, 0.0, 0.0) * (gradient) + vec3(0.6, 0.0, 0.6) * (1-gradient);
+	return vec4(color, 1.0);
+}
+
 void main(void)
 {
     vec2 uv;
@@ -171,12 +178,14 @@ void main(void)
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
 
     vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
-    MarchResult result = ray_march(in_CamPosition, ray_dir);
+    MarchResult result = ray_march(in_CamPosition, ray_dir, 0.01);
+    vec4 color = vec4(0, 0, 0, 0);
 
     if (result.did_hit == true){
-        out_Color = get_hit_color(result.number_of_iterations, result.hit_pos, ray_dir);
+        color = get_hit_color(result.number_of_iterations, result.hit_pos, ray_dir);
     }
     else{
-        out_Color = get_bg_color(result.closest_dist);
+        color = get_bg_color(result.smallest_dist);
     }
+    out_Color = color;
 }
