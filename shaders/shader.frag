@@ -10,6 +10,14 @@ uniform float in_Scale;
 uniform vec3 in_Offset;
 out vec4 out_Color;
 
+struct MarchResult
+{
+    bool did_hit;
+    int number_of_iterations;
+    vec3 hit_pos;
+    float smallest_dist;
+};
+
 void plane_fold(inout vec4 z, const vec3 n, const float d)
 {
     z.xyz -= 2.0 * min(0.0, dot(z.xyz, n) - d) * n;
@@ -75,11 +83,39 @@ float estimate_distance(const vec3 p)
     return length(z) / abs(dr);
 }
 
-vec4 get_hit_color(const int iter, const float distance_to_origin)
+vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 {
-    float gradient = min(10, distance_to_origin)/10;
+    // Calculate color from distance to origin
+    float gradient = min(10, length(curr_pos))/10;
     vec3 color = vec3(1.0, 0.0, 1.0)*(gradient) + vec3(0.0, 0.0, 1.0)*(1 - gradient);
-    return vec4((color) * max(0.3, pow(0.97, iter)), 1.0);
+
+    // Calculate ambient occlusion
+    vec4 amb_color = vec4((color) * max(0.3, pow(0.97, iter)), 1.0);
+
+    // Calculate color
+	const float STEP_LEN = 0.005;
+    const float REFLECTION_DIF = 0.7;
+    const float REFLECTION_SPEC = 0.9;
+    const vec3 LIGHT_DIR = normalize(vec3(1, 1, 1));
+    const float INTENSITY_DIF = 1.0;
+    const float INTENSITY_AMB = 1.0;
+    const float INTENSITY_SPEC = 1.0;
+    const float ALPHA = 20;
+
+    // Normals
+    float x_norm = estimate_distance(curr_pos + vec3(0,0,STEP_LEN)) - estimate_distance(curr_pos - vec3(0,0,STEP_LEN));
+    float y_norm = estimate_distance(curr_pos + vec3(0,STEP_LEN,0)) - estimate_distance(curr_pos - vec3(0,STEP_LEN,0));
+    float z_norm = estimate_distance(curr_pos + vec3(STEP_LEN,0,0)) - estimate_distance(curr_pos - vec3(STEP_LEN,0,0));
+	vec3 normal = normalize(vec3(x_norm, y_norm, z_norm));
+
+    vec3 reflection_angle = 2*normal * dot(LIGHT_DIR, normal) - LIGHT_DIR;
+
+    // Light componenets
+    float amb_ligth = REFLECTION_DIF * INTENSITY_AMB;
+    float dif_light = REFLECTION_DIF * INTENSITY_DIF * max(0, dot(normal, LIGHT_DIR));
+    float spec_light = REFLECTION_SPEC * INTENSITY_SPEC * pow(max(0, dot(reflection_angle, dir)), ALPHA);
+
+	return amb_color * (amb_ligth + dif_light + spec_light);
 }
 
 vec4 get_bg_color(const float closest_dist)
@@ -89,38 +125,41 @@ vec4 get_bg_color(const float closest_dist)
 	return vec4(color, 1.0);
 }
 
-vec4 ray_march(const vec3 start, const vec3 dir)
+MarchResult ray_march(const vec3 start, const vec3 dir)
 {
-    const float MIN_DIST = 0.01;
+    const float MIN_DIST = 0.001;
     const float MAX_DIST = 1000;
     const int MAX_ITER = 100;
 
     float traveled_dist = 0;
     float smallest_dist = 1./0.; // Very large number
-	
+    bool did_hit = false;
+    int i = 0;
+    vec3 curr_pos = start;
 
-    for (int i = 0; i < MAX_ITER; i++)
+    for (i; i < MAX_ITER; i++)
     {
-        vec3 curr_pos = start + dir * traveled_dist; 
+        curr_pos = start + dir * traveled_dist; 
 
         float closest_dist = estimate_distance(curr_pos);
 
-	smallest_dist = min(smallest_dist, closest_dist);
+		smallest_dist = min(smallest_dist, closest_dist);
 
         if (closest_dist < MIN_DIST)
         {
-            return get_hit_color(i, length(curr_pos));        
+            did_hit = true;
+            break;
         }
 
         if (closest_dist > MAX_DIST)
         {
-            return get_bg_color(smallest_dist);
+            break;
         }
 
         traveled_dist += closest_dist;
     }
 
-    return get_bg_color(smallest_dist);
+    return MarchResult(did_hit, i, curr_pos, smallest_dist);
 }
 
 void main(void)
@@ -130,6 +169,14 @@ void main(void)
 
     uv.x = gl_FragCoord.x/in_ScreenSize.y + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
+
     vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
-    out_Color = ray_march(in_CamPosition, ray_dir);
+    MarchResult result = ray_march(in_CamPosition, ray_dir);
+
+    if (result.did_hit == true){
+        out_Color = get_hit_color(result.number_of_iterations, result.hit_pos, ray_dir);
+    }
+    else{
+        out_Color = get_bg_color(result.closest_dist);
+    }
 }
