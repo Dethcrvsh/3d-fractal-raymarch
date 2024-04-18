@@ -33,10 +33,10 @@ unsigned int vertex_array_obj_id;
 
 ShaderInstance instance;
 
-float scale = 1;
+float scale = 2;
 float rotation1 = 0;
 float rotation2 = 0;
-vec3 offset = vec3(0.5, -0.5, 0.5);
+vec3 offset = vec3(0.0, 0.0, 0.0);
 
 void init(void)
 {
@@ -207,12 +207,11 @@ int main(int argc, char *argv[])
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     glutCreateWindow ("Raymarch fractal");
     glutDisplayFunc(display); 
-	glutRepeatingTimer(2);
+    glutRepeatingTimer(4);
     //glutPassiveMotionFunc(mouse_moved);
-	glutMouseFunc(mouse);
-	glutMotionFunc(drag);
-  	//glutHideCursor();
-    init ();
+    glutMouseFunc(mouse);
+    glutMotionFunc(drag);
+    //glutHideCursor();
+    init();
     glutMainLoop();
-    return 0;
 }

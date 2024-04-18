@@ -96,7 +96,7 @@ vec4 ray_march(const vec3 start, const vec3 dir)
     const int MAX_ITER = 100;
 
     float traveled_dist = 0;
-	float smallest_dist = 1000000; // Very large number
+    float smallest_dist = 1./0.; // Very large number
 	
 
     for (int i = 0; i < MAX_ITER; i++)
@@ -105,7 +105,7 @@ vec4 ray_march(const vec3 start, const vec3 dir)
 
         float closest_dist = estimate_distance(curr_pos);
 
-		smallest_dist = min(smallest_dist, closest_dist);
+	smallest_dist = min(smallest_dist, closest_dist);
 
         if (closest_dist < MIN_DIST)
         {
@@ -128,7 +128,7 @@ void main(void)
     vec2 uv;
     const float OFFSET = -0.5;
 
-    uv.x = gl_FragCoord.x/in_ScreenSize.x + OFFSET;
+    uv.x = gl_FragCoord.x/in_ScreenSize.y + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
     vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
     out_Color = ray_march(in_CamPosition, ray_dir);
