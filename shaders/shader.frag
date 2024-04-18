@@ -10,6 +10,14 @@ uniform float in_Scale;
 uniform vec3 in_Offset;
 out vec4 out_Color;
 
+struct MarchResult
+{
+    bool did_hit;
+    int number_of_iterations;
+    vec3 hit_pos;
+    float smallest_dist;
+};
+
 void plane_fold(inout vec4 z, const vec3 n, const float d)
 {
     z.xyz -= 2.0 * min(0.0, dot(z.xyz, n) - d) * n;
@@ -57,7 +65,7 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 15;
+    const int MAX_ITER = 12;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
@@ -75,11 +83,85 @@ float estimate_distance(const vec3 p)
     return length(z) / abs(dr);
 }
 
-vec4 get_hit_color(const int iter, const float distance_to_origin)
+MarchResult ray_march(const vec3 start, const vec3 dir, const float MIN_DIST)
 {
-    float gradient = min(10, distance_to_origin)/10;
+    const float MAX_DIST = 1000;
+    const int MAX_ITER = 500;
+
+    float traveled_dist = 0;
+    float smallest_dist = 1./0.; // Very large number
+    bool did_hit = false;
+    int i = 0;
+    vec3 curr_pos = start;
+
+    for (i; i < MAX_ITER; i++)
+    {
+        curr_pos = start + dir * traveled_dist; 
+
+        float closest_dist = estimate_distance(curr_pos);
+
+		smallest_dist = min(smallest_dist, closest_dist);
+
+        if (closest_dist < MIN_DIST)
+        {
+            did_hit = true;
+            break;
+        }
+
+        if (closest_dist > MAX_DIST)
+        {
+            break;
+        }
+
+        traveled_dist += closest_dist;
+    }
+
+    return MarchResult(did_hit, i, curr_pos, smallest_dist);
+}
+
+vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
+{
+    // Calculate color from distance to origin
+    float gradient = min(10, length(curr_pos))/10;
     vec3 color = vec3(1.0, 0.0, 1.0)*(gradient) + vec3(0.0, 0.0, 1.0)*(1 - gradient);
-    return vec4((color) * max(0.3, pow(0.97, iter)), 1.0);
+
+    // Calculate ambient occlusion
+    vec4 amb_color = vec4((color) * max(0.3, pow(0.98, iter)), 1.0);
+    //vec4 amb_color = vec4((color) * max(0.3, (1-float(iter)/float(500))) , 1.0);
+
+    // Calculate color
+	const float STEP_LEN = 0.01;
+    const float REFLECTION_DIF = 0.7;
+    const float REFLECTION_SPEC = 0.9;
+    const vec3 LIGHT_DIR = normalize(vec3(0.8, 0, 1));
+    const float INTENSITY_DIF = 1.0;
+    const float INTENSITY_AMB = 1.0;
+    const float INTENSITY_SPEC = 1.0;
+    const float ALPHA = 20;
+
+    // Normals
+    vec3 pos = curr_pos - dir*0.001; // Backtrack to get better normals
+    float x_norm = estimate_distance(pos + vec3(STEP_LEN,0,0)) - estimate_distance(pos - vec3(STEP_LEN,0,0));
+    float y_norm = estimate_distance(pos + vec3(0,STEP_LEN,0)) - estimate_distance(pos - vec3(0,STEP_LEN,0));
+    float z_norm = estimate_distance(pos + vec3(0,0,STEP_LEN)) - estimate_distance(pos - vec3(0,0,STEP_LEN));
+	vec3 normal = normalize(vec3(x_norm, y_norm, z_norm));
+
+    vec3 reflection_angle = 2*normal * dot(-LIGHT_DIR, normal) - (-LIGHT_DIR);
+
+    // Light componenets
+    float amb_light = REFLECTION_DIF * INTENSITY_AMB;
+    float dif_light = REFLECTION_DIF * INTENSITY_DIF * max(0, dot(normal, -LIGHT_DIR));
+    float spec_light = REFLECTION_SPEC * INTENSITY_SPEC * pow(max(0, dot(reflection_angle, dir)), ALPHA);
+
+    // Calculate shadows
+    MarchResult result = ray_march(pos, LIGHT_DIR, 0.001);
+    float shadow = 1.0;
+    if(result.did_hit){
+        shadow = 0.1;
+        spec_light = 0.7;
+    }
+
+	return amb_color* (amb_light + dif_light + spec_light) * shadow;
 }
 
 vec4 get_bg_color(const float closest_dist)
@@ -89,40 +171,6 @@ vec4 get_bg_color(const float closest_dist)
 	return vec4(color, 1.0);
 }
 
-vec4 ray_march(const vec3 start, const vec3 dir)
-{
-    const float MIN_DIST = 0.01;
-    const float MAX_DIST = 1000;
-    const int MAX_ITER = 100;
-
-    float traveled_dist = 0;
-    float smallest_dist = 1./0.; // Very large number
-	
-
-    for (int i = 0; i < MAX_ITER; i++)
-    {
-        vec3 curr_pos = start + dir * traveled_dist; 
-
-        float closest_dist = estimate_distance(curr_pos);
-
-	smallest_dist = min(smallest_dist, closest_dist);
-
-        if (closest_dist < MIN_DIST)
-        {
-            return get_hit_color(i, length(curr_pos));        
-        }
-
-        if (closest_dist > MAX_DIST)
-        {
-            return get_bg_color(smallest_dist);
-        }
-
-        traveled_dist += closest_dist;
-    }
-
-    return get_bg_color(smallest_dist);
-}
-
 void main(void)
 {
     vec2 uv;
@@ -130,6 +178,16 @@ void main(void)
 
     uv.x = gl_FragCoord.x/in_ScreenSize.y + OFFSET;
     uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
+
     vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
-    out_Color = ray_march(in_CamPosition, ray_dir);
+    MarchResult result = ray_march(in_CamPosition, ray_dir, 0.001);
+    vec4 color = vec4(0, 0, 0, 0);
+
+    if (result.did_hit == true){
+        color = get_hit_color(result.number_of_iterations, result.hit_pos, ray_dir);
+    }
+    else{
+        color = get_bg_color(result.smallest_dist);
+    }
+    out_Color = color;
 }
