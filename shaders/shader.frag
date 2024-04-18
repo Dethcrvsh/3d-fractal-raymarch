@@ -140,7 +140,7 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
     const float ALPHA = 20;
 
     // Normals
-    vec3 pos = curr_pos - dir*0.001; // Backtrack to get better normals
+    vec3 pos = curr_pos - dir*0.01; // Backtrack to get better normals
     float x_norm = estimate_distance(pos + vec3(STEP_LEN,0,0)) - estimate_distance(pos - vec3(STEP_LEN,0,0));
     float y_norm = estimate_distance(pos + vec3(0,STEP_LEN,0)) - estimate_distance(pos - vec3(0,STEP_LEN,0));
     float z_norm = estimate_distance(pos + vec3(0,0,STEP_LEN)) - estimate_distance(pos - vec3(0,0,STEP_LEN));

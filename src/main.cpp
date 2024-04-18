@@ -91,14 +91,21 @@ struct Camera
 } camera;
 
 float previous_time;
+bool in_menu = false;
 
 
 void mouse_moved(int mx, int my)
 {
-  camera.angle.x -= (SCREEN_WIDTH/2.0 - mx) / MOUSE_SENSITIVITY;
-  camera.angle.y -= (SCREEN_HEIGHT/2.0 - my) / MOUSE_SENSITIVITY;
-  camera.angle.y = std::max((float)-M_PI/2, std::min(camera.angle.y, (float)M_PI/2));
-  glutWarpPointer(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+    if(not in_menu){
+        camera.angle.x -= (SCREEN_WIDTH/2.0 - mx) / MOUSE_SENSITIVITY;
+        camera.angle.y -= (SCREEN_HEIGHT/2.0 - my) / MOUSE_SENSITIVITY;
+        camera.angle.y = std::max((float)-M_PI/2, std::min(camera.angle.y, (float)M_PI/2));
+        glutWarpPointer(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+        glutHideCursor();
+    }
+    else{
+        glutShowCursor();
+    }
 }
 
 void do_movement(float const delta)
@@ -121,6 +128,9 @@ void do_movement(float const delta)
     if (glutKeyIsDown('d')) {
         camera.pos.x += delta * cos(camera.angle.x) * MOVE_SPEED;
         camera.pos.z += delta * sin(camera.angle.x) * MOVE_SPEED;
+    }
+    if (glutKeyIsDown(GLUT_KEY_ESC)){
+        in_menu = not in_menu;
     }
 }
 
@@ -208,10 +218,9 @@ int main(int argc, char *argv[])
     glutCreateWindow ("Raymarch fractal");
     glutDisplayFunc(display); 
     glutRepeatingTimer(4);
-    //glutPassiveMotionFunc(mouse_moved);
+    glutPassiveMotionFunc(mouse_moved);
     glutMouseFunc(mouse);
     glutMotionFunc(drag);
-    //glutHideCursor();
     init();
     glutMainLoop();
 }
