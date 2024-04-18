@@ -647,6 +647,11 @@ void sgDraw()
 		if (items != NULL)
 		for (int i = 0; items[i] != NULL; i++)
 		{
+            // I dont want the fucking width from non existing items
+            if (items[i]->itemType == -1) {
+                    continue;
+            }
+
 			int x;
 			if (items[i]->x < xmin) xmin = items[i]->x;
 			if (items[i]->y-16 < ymin) ymin = items[i]->y - 16;

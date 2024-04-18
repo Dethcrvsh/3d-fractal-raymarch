@@ -1,13 +1,10 @@
-
 #include "GL_utilities.h"
 #include "MicroGlut.h"
 #include "LittleOBJLoader.h"
 #include "shader.h"
 #include <GL/glext.h>
-#include <iostream>
-#include <math.h>
-#include "menu.h"
 #include "SimpleGUI.h"
+#include <math.h>
 // uses framework OpenGL
 // uses framework Cocoa
 
@@ -34,6 +31,7 @@ unsigned int vertex_array_obj_id;
 
 ShaderInstance instance;
 
+float scale = 2;
 float rotation1 = 0;
 float rotation2 = 0;
 vec3 offset = vec3(0.0, 0.0, 0.0);
@@ -50,7 +48,7 @@ void init(void)
     glDisable(GL_DEPTH_TEST);
     printError("GL inits");
 
-    instance = load_shaders("shaders/shader.vert", "shaders/shader.frag");
+    instance = load_shaders("shader.vert", "shader.frag");
     program = instance.program;
 
     // Example of how to insert content to shaders:
@@ -73,9 +71,8 @@ void init(void)
     // Send the screen size to the shader
     glUniform2i(glGetUniformLocation(program, "in_ScreenSize"), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    Menu::init();
-
     printError("init arrays");
+
 }
 
 const float MOVE_SPEED = 0.01;
@@ -167,7 +164,7 @@ void display(void)
         offset.x, offset.y, offset.z);
 
 	glUniform1f(glGetUniformLocation(program, "in_Scale"),
-        Menu::get_parameters().scale);
+        scale);
 
 
     printError("pre display");
