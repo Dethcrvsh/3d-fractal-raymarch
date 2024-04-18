@@ -1,6 +1,6 @@
 commondir = common/
 guidir = SimpleGUI/
-SRCS := $(wildcard *.cpp)
+SRCS := $(wildcard src/*.cpp)
 OBJS := $(SRCS:.cpp=.o)
 TARGET = Fractals
 

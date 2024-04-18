@@ -50,7 +50,7 @@ void init(void)
     glDisable(GL_DEPTH_TEST);
     printError("GL inits");
 
-    instance = load_shaders("shader.vert", "shader.frag");
+    instance = load_shaders("shaders/shader.vert", "shaders/shader.frag");
     program = instance.program;
 
     // Example of how to insert content to shaders:
