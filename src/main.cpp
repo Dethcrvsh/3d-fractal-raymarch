@@ -81,7 +81,7 @@ void init(void)
 	sgCreateSliderVec3Group(100, 160, 500, (float*)&offset, -4, 4);
 }
 
-const float MOVE_SPEED = 0.01;
+const float MOVE_SPEED = 0.0015;
 const float MOUSE_SENSITIVITY = 1000;
 
 struct Camera
