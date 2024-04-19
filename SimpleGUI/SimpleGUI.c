@@ -32,6 +32,7 @@
 #include <math.h>
 #include <string.h>
 #include "SimpleGUI.h"
+#include <stdbool.h>
 
 // Ugly hard-coded hack to fix a bug/(incompatibility with Apple's M/ARM CPUs.
 // I don't feel 2x is a safe bet but for now it seems to work.
@@ -455,6 +456,7 @@ typedef struct Item
 	int x, y; // , w, h;
 	int hx, hy, hw, hh; // hot box!
 	void *var1,*var2,*var3; // Pointers to controlled variables
+    bool visible;
 } Item;
 
 static Item **items = NULL;
@@ -647,9 +649,9 @@ void sgDraw()
 		if (items != NULL)
 		for (int i = 0; items[i] != NULL; i++)
 		{
-            // I dont want the fucking width from non existing items
-            if (items[i]->itemType == -1) {
-                    continue;
+            // I dont want to show hidden items
+            if (!items[i]->visible) {
+                continue;
             }
 
 			int x;
@@ -731,6 +733,9 @@ void sgDraw()
 	if (items != NULL)
 	for (int i = 0; items[i] != NULL; i++)
 	{
+        if (!items[i]->visible) {
+                continue;
+        }
 		
 		int h = items[i]->x;
 		int v = items[i]->y;
@@ -1180,6 +1185,7 @@ static int sgCreateItem(int x, int y)
 	items[itemCount-1]->y = y;
 	items[itemCount-1]->hx = x; // Common default
 	items[itemCount-1]->hy = y;
+    items[itemCount-1]->visible = true;
 	return itemCount-1; // # of new item
 }
 
@@ -1325,7 +1331,7 @@ int sgCreateRadio(int x, int y, const char *s, int *variable, int index)
 }
 
 // A pushbutton.
-int sgCreateButton(int x, int y, const char *s, NoArgProcPtr callback)
+int sgCreateButton(int x, int y, const char *s, IntProcPtr callback)
 {
 	int i = sgCreateItem(x, y);
 	items[i]->itemType = kButton;
@@ -1367,7 +1373,7 @@ int sgCreateMenu(int x, int y, const char *s)
 }
 
 // A menu item. Works just like a button.
-int sgCreateMenuItem(const char *s, NoArgProcPtr callback)
+int sgCreateMenuItem(const char *s, IntProcPtr callback)
 {
 	if (itemCount < 1) return 0;
 	int x, y;
@@ -1538,7 +1544,20 @@ void sgCreateSteppers(int x, int y, int *variable)
 	sgCreateRightStepper(x+10, y, variable);
 }
 
+void sgToggleItem(int id) {
+	if (id >= 0 && id < itemCount) {
+        items[id]->visible = !items[id]->visible;
+    }
+};
 
+void sgOffsetItem(int id, int x, int y) {
+	if (id >= 0 && id < itemCount) {
+        items[id]->x += x;
+        items[id]->y += y;
+        items[id]->hx += y;
+        items[id]->hy += y;
+    }
+};
 
 void sgRemoveItem(int i)
 {
@@ -1582,7 +1601,7 @@ int sgMouse(int state, int x, int y)
 				{
 					// Call callback function!
 					if (items[i]->var1 != NULL)
-						((NoArgProcPtr)items[i]->var1)();
+						((IntProcPtr)items[i]->var1)(i);
 					for (int j = i; j > 0 && items[j] != NULL && items[j]->itemType == kMenuItem; j--)
 						items[j]->state = 0;
 					for (int j = i; items[j] != NULL && items[j]->itemType == kMenuItem; j++)
@@ -1675,7 +1694,7 @@ int sgMouse(int state, int x, int y)
 					switch (items[activeButton]->itemType)
 					{
 						case kButton:
-								((NoArgProcPtr)items[activeButton]->var1)(); break;
+								((IntProcPtr)items[activeButton]->var1)(activeButton); break;
 						case kLeftStepper:
 								(*(int *)items[activeButton]->var1)--; break;
 						case kRightStepper:

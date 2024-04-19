@@ -128,6 +128,8 @@ void display(void)
     float const delta = time - previous_time;
     previous_time = time;
 
+    Menu::Parameters const params = Menu::get_parameters();
+
     do_movement(delta);
 
 	// Get camera rotation as matrix
@@ -164,10 +166,10 @@ void display(void)
         camera.pos.x, camera.pos.y, camera.pos.z);
 
 	glUniform3f(glGetUniformLocation(program, "in_Offset"),
-        offset.x, offset.y, offset.z);
+        params.offset.x, params.offset.y, params.offset.z);
 
 	glUniform1f(glGetUniformLocation(program, "in_Scale"),
-        Menu::get_parameters().scale);
+        params.scale);
 
 
     printError("pre display");

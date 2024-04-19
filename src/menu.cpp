@@ -4,65 +4,41 @@
 
 namespace Menu {
 
-struct Coordinates {
-    int x;
-    int y;
-};
-
-Coordinates const MENU_POS{100, 100};
-int const SLIDER_LENGTH = 500;
-
-Parameters parameters {};
-
-bool visible{true};
-// Keep track of the items' id
-std::vector<int> items{};
+Parameters params{};
+std::vector<int> items;
+Section main{100, 500, "Main"};
 
 void init() {
     const float OFFSET{20};
+    createSliderDisplay(0, 0, &params.scale, "scale",
+                        -4, 4, main);
+    createSliderDisplay(0, OFFSET, &params.offset.x,
+                        "offset x: ", -4, 4, main);
+    createSliderDisplay(0, OFFSET * 2, &params.offset.y,
+                        "offset y: ", -4, 4, main);
+    createSliderDisplay(0, OFFSET * 3, &params.offset.z,
+                        "offset z: ", -4, 4, main);
 
-    createSliderDisplay(MENU_POS.x, MENU_POS.y + OFFSET, &parameters.scale,
-                        "scale", -4, 4);
 
-    createSliderDisplay(MENU_POS.x, MENU_POS.y + OFFSET * 2, &parameters.offset.x,
-                        "offset x: ", -4, 4);
-    createSliderDisplay(MENU_POS.x, MENU_POS.y + OFFSET * 3, &parameters.offset.y,
-                        "offset y: ", -4, 4);
-    createSliderDisplay(MENU_POS.x, MENU_POS.y + OFFSET * 4, &parameters.offset.z,
-                        "offset z: ", -4, 4);
-
-    sgCreateButton(MENU_POS.x, MENU_POS.y, "click", &onButtonPress);
+    Section new_s {Section{50, 50, "section"}};
+    main.add_section(new_s);
+    createSliderDisplay(0, OFFSET * 3, &params.offset.z,
+                        "offset z: ", -4, 4, new_s);
 }
 
-Parameters &get_parameters() { 
-    return parameters; }
+void onButtonPress(int id) {
+    main.toggle(id);
+}
+
+Parameters &get_parameters() { return params; }
 
 void createSliderDisplay(float const &x, float const &y, float *v,
                          std::string const &name, float const &min,
-                         float const &max) {
+                         float const &max, Section &section) {
     const float OFFSET{20};
-    items.push_back(sgCreateSlider(x, y, SLIDER_LENGTH, v, -4, 4));
-    items.push_back(sgCreateDisplayFloat(x + SLIDER_LENGTH + OFFSET, y,
-                                         (name + std::string(": ")).c_str(), v));
+    section.add_item(sgCreateSlider(x, y, SLIDER_LENGTH, v, -4, 4));
+    section.add_item(sgCreateDisplayFloat(x + SLIDER_LENGTH + OFFSET, y,
+                                          (name + std::string(": ")).c_str(), v));
 }
-
-void hideItems() {
-    for (int const item : items) {
-        sgRemoveItem(item);
-    }
-    items.clear();
-}
-
-void showItems() { init(); }
-
-void onButtonPress() {
-    visible = !visible;
-
-    if (visible) {
-        showItems();
-    } else {
-        hideItems();
-    }
-};
 
 } // namespace Menu

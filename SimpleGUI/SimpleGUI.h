@@ -16,6 +16,10 @@ extern "C" {
 #include "MicroGlut.h"
 
 typedef void (*NoArgProcPtr)();
+typedef void (*IntProcPtr)(int);
+
+void sgToggleItem(int id);
+void sgOffsetItem(int id, int x, int y);
 
 // Create controls
 int sgCreateSlider(int x, int y, int w, float *variable, float min, float max);
@@ -28,11 +32,11 @@ int sgCreateDynamicString(int x, int y, char *s);
 int sgCreateDisplayInt(int x, int y, const char *s, int *variable);
 int sgCreateDisplayFloat(int x, int y, const char *s, float *variable);
 int sgCreateRadio(int x, int y, const char *s, int *variable, int index);
-int sgCreateButton(int x, int y, const char *s, NoArgProcPtr callback);
+int sgCreateButton(int x, int y, const char *s, IntProcPtr callback);
 void sgCreateSliderVec3Group(int x, int y, int w, float *v, float min, float max);
 
 int sgCreateMenu(int x, int y, const char *s);
-int sgCreateMenuItem(const char *s, NoArgProcPtr callback);
+int sgCreateMenuItem(const char *s, IntProcPtr callback);
 
 int sgCreateColorClicker(int x, int y, float r, float g, float b, float *dr, float *dg, float *db);
 int sgCreateSmallColorClicker(int x, int y, float r, float g, float b, float *dr, float *dg, float *db);
