@@ -10,7 +10,7 @@ uniform float in_Scale;
 uniform vec3 in_Offset;
 out vec4 out_Color;
 
-const float MIN_DIST = 0.001;
+const float MIN_DIST = 0.005;
 
 struct MarchResult
 {
@@ -85,7 +85,7 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 20;
+    const int MAX_ITER = 17;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
@@ -108,7 +108,7 @@ float estimate_distance(const vec3 p)
 MarchResult ray_march(const vec3 start, const vec3 dir)
 {
     const float MAX_DIST = 1000;
-    const int MAX_ITER = 200;
+    const int MAX_ITER = 64;
 
     float traveled_dist = 0;
     float smallest_dist = 1./0.; // Very large number
