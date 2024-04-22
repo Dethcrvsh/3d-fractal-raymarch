@@ -195,10 +195,10 @@ vec4 get_bg_color(const float closest_dist)
 void main(void)
 {
     vec2 uv;
-    const float OFFSET = -0.5;
+    vec2 offset = vec2(-0.5 * in_ScreenSize.x/in_ScreenSize.y, -0.5);
 
-    uv.x = gl_FragCoord.x/in_ScreenSize.y - 0.5 * in_ScreenSize.x/in_ScreenSize.y;
-    uv.y = gl_FragCoord.y/in_ScreenSize.y - 0.5 * in_ScreenSize.y/in_ScreenSize.y;
+    uv.x = gl_FragCoord.x/in_ScreenSize.y + offset.x;
+    uv.y = gl_FragCoord.y/in_ScreenSize.y + offset.y; 
 
     vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
     MarchResult result = ray_march(in_CamPosition, ray_dir);
