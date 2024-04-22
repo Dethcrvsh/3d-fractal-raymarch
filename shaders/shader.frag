@@ -94,10 +94,9 @@ float estimate_distance(const vec3 p)
     for (int i = 0; i < MAX_ITER; i++)
     {
 	    box_fold(z, 1);
-	    z = z * in_RotTest1;
-        sierpinskiFold(z, 2);
 	    z = z * in_RotTest2;
         sphereFold(z, dr);
+	    z = z * in_RotTest1;
         z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
         dr = dr * abs(in_Scale) + 1.0;
     }
@@ -196,10 +195,10 @@ vec4 get_bg_color(const float closest_dist)
 void main(void)
 {
     vec2 uv;
-    const float OFFSET = -0.5;
+    vec2 offset = vec2(-0.5 * in_ScreenSize.x/in_ScreenSize.y, -0.5);
 
-    uv.x = gl_FragCoord.x/in_ScreenSize.y + OFFSET;
-    uv.y = gl_FragCoord.y/in_ScreenSize.y + OFFSET;
+    uv.x = gl_FragCoord.x/in_ScreenSize.y + offset.x;
+    uv.y = gl_FragCoord.y/in_ScreenSize.y + offset.y; 
 
     vec3 ray_dir = normalize(vec3(in_CamRotY * in_CamRotX * vec4(uv.x, uv.y, -1.0, 1.0))); 
     MarchResult result = ray_march(in_CamPosition, ray_dir);
