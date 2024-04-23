@@ -18,6 +18,7 @@ struct MarchResult
     int number_of_iterations;
     vec3 hit_pos;
     float smallest_dist;
+    float near_miss_angle;
 };
 
 void plane_fold(inout vec4 z, const vec3 n, const float d)
@@ -107,13 +108,14 @@ float estimate_distance(const vec3 p)
 MarchResult ray_march(const vec3 start, const vec3 dir)
 {
     const float MAX_DIST = 1000;
-    const int MAX_ITER = 64;
+    const int MAX_ITER = 96;
 
     float traveled_dist = 0;
     float smallest_dist = 1./0.; // Very large number
     bool did_hit = false;
     int i = 0;
     vec3 curr_pos = start;
+    float near_miss_angle = 1.0;
 
     for (i; i < MAX_ITER; i++)
     {
@@ -134,27 +136,28 @@ MarchResult ray_march(const vec3 start, const vec3 dir)
             break;
         }
 
+        near_miss_angle = min(near_miss_angle, 8*closest_dist/traveled_dist);
         traveled_dist += closest_dist;
     }
 
-    return MarchResult(did_hit, i, curr_pos, smallest_dist);
+    return MarchResult(did_hit, i, curr_pos, smallest_dist, near_miss_angle);
 }
 
 vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 {
     // Calculate color from distance to origin
     float gradient = min(10, length(curr_pos))/10;
-    vec3 color = vec3(0.7, 0.7, 0.7)*(gradient) + vec3(0.3, 0.3, 0.3)*(1 - gradient);
+    vec3 color = vec3(0.7, 0.8, 0.7)*(gradient) + vec3(0.7, 0.8, 0.7)*(1 - gradient);
 
     // Calculate ambient occlusion
-    vec4 amb_color = vec4((color) * max(0.3, pow(0.98, iter)), 1.0);
+    vec4 amb_color = vec4((color), 1); //* max(0.3, pow(0.98, iter)), 1.0);
     //vec4 amb_color = vec4((color) * max(0.3, (1-float(iter)/float(500))) , 1.0);
 
     // Calculate color
 	const float STEP_LEN = MIN_DIST;
     const float REFLECTION_DIF = 0.7;
     const float REFLECTION_SPEC = 0.9;
-    const vec3 LIGHT_DIR = normalize(vec3(0.8, 0, 1));
+    const vec3 LIGHT_DIR = normalize(vec3(0.8, 0.5, 1));
     const float INTENSITY_DIF = 1.0;
     const float INTENSITY_AMB = 0.8;
     const float INTENSITY_SPEC = 1.0;
@@ -171,15 +174,15 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 
     // Light componenets
     float amb_light = REFLECTION_DIF * INTENSITY_AMB;
-    float dif_light = REFLECTION_DIF * INTENSITY_DIF * max(0, dot(normal, -LIGHT_DIR));
+    float dif_light = REFLECTION_DIF * INTENSITY_DIF * max(0, dot(normal, LIGHT_DIR));
     float spec_light = REFLECTION_SPEC * INTENSITY_SPEC * pow(max(0, dot(reflection_angle, dir)), ALPHA);
 
     // Calculate shadows
     MarchResult result = ray_march(pos, LIGHT_DIR);
-    float shadow = 1.0;
+    float shadow = 0.4 + 0.6 * result.near_miss_angle;
+    //spec_light = spec_light * result.near_miss_angle;
     if(result.did_hit){
-        shadow = 0.6;
-        //spec_light = 0.8;
+        shadow = 0.4;
     }
 
 	return amb_color * (amb_light + dif_light + spec_light) * shadow;
