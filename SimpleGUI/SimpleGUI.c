@@ -1544,20 +1544,41 @@ void sgCreateSteppers(int x, int y, int *variable)
 	sgCreateRightStepper(x+10, y, variable);
 }
 
-void sgToggleItem(int id) {
+int sgGetVisibility(int id) {
 	if (id >= 0 && id < itemCount) {
-        items[id]->visible = !items[id]->visible;
+        return items[id]->visible;
+    }
+    return false;
+};
+
+void sgSetVisibility(int id, bool visible) {
+	if (id >= 0 && id < itemCount) {
+        items[id]->visible = visible;
     }
 };
 
-void sgOffsetItem(int id, int x, int y) {
+void sgPosItem(int id, int x, int y) {
 	if (id >= 0 && id < itemCount) {
-        items[id]->x += x;
-        items[id]->y += y;
-        items[id]->hx += y;
-        items[id]->hy += y;
+        items[id]->x = x;
+        items[id]->y = y;
+        items[id]->hx = x;
+        items[id]->hy = y;
     }
 };
+
+int sgGetItemWidth(int id) {
+	if (id >= 0 && id < itemCount) {
+        return items[id]->hw;
+    }
+    return 0;
+}
+
+int sgGetItemY(int id) {
+	if (id >= 0 && id < itemCount) {
+        return items[id]->x;
+    }
+    return 0;
+}
 
 void sgRemoveItem(int i)
 {

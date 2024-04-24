@@ -1,6 +1,7 @@
 #ifndef _SIMPLEGUI_
 #define _SIMPLEGUI_
 
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,8 +19,11 @@ extern "C" {
 typedef void (*NoArgProcPtr)();
 typedef void (*IntProcPtr)(int);
 
-void sgToggleItem(int id);
-void sgOffsetItem(int id, int x, int y);
+void sgSetVisibility(int id, bool visible);
+int sgGetVisibility(int id);
+void sgPosItem(int id, int x, int y);
+int sgGetItemWidth(int id);
+int sgGetItemY(int id);
 
 // Create controls
 int sgCreateSlider(int x, int y, int w, float *variable, float min, float max);
