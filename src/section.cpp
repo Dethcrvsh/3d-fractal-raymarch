@@ -6,7 +6,7 @@ using namespace Menu;
 
 Section::Section(int const &x, int const &y, std::string const &title, Section *parent, bool close_button)
 : pos{x, y}, parent {parent}, close_button {close_button} {
-    button_id = sgCreateButton(0, 0, "toggle", &onButtonPress);
+    button_id = sgCreateButton(0, 0, "V", &onButtonPress);
     title_id = sgCreateStaticString(0, 0, title.c_str());
 
     if (close_button) {
@@ -18,7 +18,22 @@ Section::Section(int const &x, int const &y, std::string const &title, Section *
 
 Section::Section(std::string const &title) : Section(0, 0, title) {}
 
-Section::~Section() {}
+Section::~Section() {
+    sgRemoveItem(button_id);
+    sgRemoveItem(title_id);
+    sgRemoveItem(close_id);
+
+    for (std::variant child : children) {
+        if (child.index() == ROW_TYPE) {
+            Row *row = std::get<Row*>(child);
+            delete row;
+        }
+        else if (child.index() == SECTION_TYPE) {
+            Section *section = std::get<Section*>(child);
+            delete section;
+        }
+    }
+}
 
 void Section::add_item(std::initializer_list<int>&& items, int const &height) {
     Row *row {new Row()};
@@ -36,7 +51,10 @@ Section* Section::add_section(std::string const& title, bool close_button) {
 }
 
 void Section::remove_section(Section *section) {
-    std::cout << "this section should die" << std::endl;
+    auto remove_it = std::find(children.begin(), children.end(), std::variant<Row*, Section*>(section));
+    children.erase(remove_it);
+    delete section;
+    update_height(0);
 }
 
 void Section::on_button_press(int id) {
@@ -95,11 +113,11 @@ void Section::update_height(int const& new_height) {
 }
 
 void Section::update_helper() {
-    sgPosItem(button_id, pos.x + CLOSE_BUTTON_WIDTH*close_button, pos.y);
-    sgPosItem(title_id, pos.x + BUTTON_WIDTH + CLOSE_BUTTON_WIDTH*close_button, pos.y);
+    sgPosItem(button_id, pos.x, pos.y);
+    sgPosItem(title_id, pos.x + BUTTON_WIDTH + BUTTON_WIDTH*close_button, pos.y);
 
     if (close_button) {
-        sgPosItem(close_id, pos.x, pos.y);
+        sgPosItem(close_id, pos.x + BUTTON_WIDTH, pos.y);
     }
 
     height = TITLE_HEIGHT;

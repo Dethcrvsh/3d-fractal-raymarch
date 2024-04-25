@@ -1,4 +1,5 @@
 #include "LittleOBJLoader.h"
+#include "SimpleGUI.h"
 #include <initializer_list>
 #include <iostream>
 #include <string>
@@ -20,6 +21,12 @@ public:
     struct Row {
         int height{PADDING.y};
         std::vector<int> items{};
+
+        ~Row() {
+            for (int const item : items) {
+                sgRemoveItem(item);
+            }
+        }
     };
 
     Section(int const &x, int const &y, std::string const &title,
@@ -53,8 +60,7 @@ protected:
 
 private:
     static int const TITLE_HEIGHT{30};
-    static int const BUTTON_WIDTH{100};
-    static int const CLOSE_BUTTON_WIDTH{50};
+    static int const BUTTON_WIDTH{30};
     static int const INDENT_WIDTH{50};
     constexpr static Coordinates const PADDING{20, 20};
 
@@ -68,7 +74,7 @@ private:
     int button_id;
     int title_id;
     // The sections close button. Not all sections have this.
-    int close_id {};
+    int close_id {-1};
 
     std::vector<std::variant<Row *, Section *>> children{};
 };
