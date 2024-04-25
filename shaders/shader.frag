@@ -6,11 +6,19 @@ uniform mat4 in_CamRotY;
 uniform mat4 in_RotTest1;
 uniform mat4 in_RotTest2;
 uniform vec3 in_CamPosition;
+
+// Distance Estimator
 uniform float in_Scale;
 uniform vec3 in_Offset;
 uniform int in_DistEstIter;
+
+// Ray Marcher
+uniform float in_RayMarchMinDist;
+uniform int in_RayMarchIterations;
+
 out vec4 out_Color;
 
+// TODO: Replace this
 const float MIN_DIST = 0.05;
 
 struct MarchResult
@@ -108,7 +116,6 @@ float estimate_distance(const vec3 p)
 MarchResult ray_march(const vec3 start, const vec3 dir)
 {
     const float MAX_DIST = 1000;
-    const int MAX_ITER = 32;
 
     float traveled_dist = 0;
     float smallest_dist = 1./0.; // Very large number
@@ -117,7 +124,7 @@ MarchResult ray_march(const vec3 start, const vec3 dir)
     vec3 curr_pos = start;
     float near_miss_angle = 1.0;
 
-    for (i; i < MAX_ITER; i++)
+    for (i; i < in_RayMarchIterations; i++)
     {
         curr_pos = start + dir * traveled_dist; 
 
@@ -125,13 +132,13 @@ MarchResult ray_march(const vec3 start, const vec3 dir)
 
 		smallest_dist = min(smallest_dist, closest_dist);
 
-        if (closest_dist < MIN_DIST)
+        if (closest_dist < in_RayMarchMinDist)
         {
             did_hit = true;
             break;
         }
 
-        if (closest_dist > MAX_DIST)
+        if (closest_dist > in_RayMarchIterations)
         {
             break;
         }
@@ -154,7 +161,7 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
     //vec4 amb_color = vec4((color) * max(0.3, (1-float(iter)/float(500))) , 1.0);
 
     // Calculate color
-	const float STEP_LEN = MIN_DIST;
+	float STEP_LEN = in_RayMarchMinDist;
     const float REFLECTION_DIF = 0.7;
     const float REFLECTION_SPEC = 0.9;
     const vec3 LIGHT_DIR = normalize(vec3(0.8, 0.5, 1));
@@ -164,7 +171,7 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
     const float ALPHA = 20;
 
     // Normals
-    vec3 pos = curr_pos - dir*MIN_DIST*2; // Backtrack to get better normals
+    vec3 pos = curr_pos - dir*in_RayMarchMinDist*2; // Backtrack to get better normals
     float x_norm = estimate_distance(pos + vec3(STEP_LEN,0,0)) - estimate_distance(pos - vec3(STEP_LEN,0,0));
     float y_norm = estimate_distance(pos + vec3(0,STEP_LEN,0)) - estimate_distance(pos - vec3(0,STEP_LEN,0));
     float z_norm = estimate_distance(pos + vec3(0,0,STEP_LEN)) - estimate_distance(pos - vec3(0,0,STEP_LEN));

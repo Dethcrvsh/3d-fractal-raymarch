@@ -1,14 +1,18 @@
 #include "SimpleGUI.h"
 #include "menu.h"
+#include <algorithm>
 
 using namespace Menu;
 
-Section::Section(int const &x, int const &y, std::string const &title, Section *parent)
-: pos{x, y}, parent {parent} {
-    button_id = sgCreateButton(pos.x, pos.y, "toggle", &onButtonPress);
-    title_id = sgCreateStaticString(pos.x + BUTTON_WIDTH, pos.y, title.c_str());
+Section::Section(int const &x, int const &y, std::string const &title, Section *parent, bool close_button)
+: pos{x, y}, parent {parent}, close_button {close_button} {
+    button_id = sgCreateButton(0, 0, "toggle", &onButtonPress);
+    title_id = sgCreateStaticString(0, 0, title.c_str());
 
-    //TODO: use the constant
+    if (close_button) {
+        close_id = sgCreateButton(0, 0, "X", &onButtonPress);
+    }
+
     update_height(30);
 }
 
@@ -24,11 +28,29 @@ void Section::add_item(std::initializer_list<int>&& items, int const &height) {
     update_height(0);
 }
 
-Section* Section::add_section(std::string const& title) {
-    Section *section = new Section(0, 0, title, this);
+Section* Section::add_section(std::string const& title, bool close_button) {
+    Section *section = new Section(0, 0, title, this, close_button);
     children.push_back(section);
     update_height(0);
     return section;
+}
+
+void Section::remove_section(Section *section) {
+    std::cout << "this section should die" << std::endl;
+}
+
+void Section::on_button_press(int id) {
+    if (id == close_id) {
+        // Root should never have a close button
+        parent->remove_section(this);
+    }
+
+    for (std::variant<Row*, Section*> child : children) {
+        if (child.index() == SECTION_TYPE) {
+            Section *section = std::get<Section*>(child);
+            section->on_button_press(id);
+        }
+    }
 }
 
 // TODO: fix this spaghett
@@ -73,8 +95,13 @@ void Section::update_height(int const& new_height) {
 }
 
 void Section::update_helper() {
-    sgPosItem(button_id, pos.x, pos.y);
-    sgPosItem(title_id, pos.x + BUTTON_WIDTH, pos.y);
+    sgPosItem(button_id, pos.x + CLOSE_BUTTON_WIDTH*close_button, pos.y);
+    sgPosItem(title_id, pos.x + BUTTON_WIDTH + CLOSE_BUTTON_WIDTH*close_button, pos.y);
+
+    if (close_button) {
+        sgPosItem(close_id, pos.x, pos.y);
+    }
+
     height = TITLE_HEIGHT;
 
     for (std::variant<Row*, Section*> const child : children) {
