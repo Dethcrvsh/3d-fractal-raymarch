@@ -10,7 +10,7 @@ uniform float in_Scale;
 uniform vec3 in_Offset;
 out vec4 out_Color;
 
-const float MIN_DIST = 0.005;
+const float MIN_DIST = 0.05;
 
 struct MarchResult
 {
@@ -32,8 +32,8 @@ void box_fold(inout vec4 z, const float fold_limit)
 }
 
 void sphereFold(inout vec4 z, inout float dz) {
-    float minRadius = 0.01;
-    float fixedRadius = 2.0;
+    float minRadius = 0.0001;
+    float fixedRadius = 1.0;
     float r = dot(z,z);
     if (r<minRadius) { 
             // linear inner scaling
@@ -86,7 +86,7 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 17;
+    const int MAX_ITER = 10;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
@@ -108,7 +108,7 @@ float estimate_distance(const vec3 p)
 MarchResult ray_march(const vec3 start, const vec3 dir)
 {
     const float MAX_DIST = 1000;
-    const int MAX_ITER = 96;
+    const int MAX_ITER = 32;
 
     float traveled_dist = 0;
     float smallest_dist = 1./0.; // Very large number
