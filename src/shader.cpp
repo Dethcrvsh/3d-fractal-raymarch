@@ -23,6 +23,9 @@ ShaderInstance load_shaders_content(char const *v_content,
     GLuint const vertex_id = glCreateShader(GL_VERTEX_SHADER);
     GLuint const shader_id = glCreateShader(GL_FRAGMENT_SHADER);
 
+    instance.vertex_id = vertex_id;
+    instance.fragment_id = shader_id;
+
     // Active the vertex shader
     glShaderSource(vertex_id, 1, &v_content, NULL);
     glCompileShader(vertex_id);
@@ -39,16 +42,42 @@ ShaderInstance load_shaders_content(char const *v_content,
     return instance;
 }
 
-void insert_shader(ShaderInstance const &instance,
+void swap_shaders(ShaderInstance &instance, std::string const &v_content, std::string const &f_content) {
+    GLuint const vertex_id = glCreateShader(GL_VERTEX_SHADER);
+    GLuint const shader_id = glCreateShader(GL_FRAGMENT_SHADER);
+
+    char const *v_content_c = v_content.c_str();
+    char const *f_content_c = f_content.c_str();
+
+    // Active the vertex shader
+    glShaderSource(vertex_id, 1, &v_content_c, NULL);
+    glCompileShader(vertex_id);
+
+    // Active the fragment shader
+    glShaderSource(shader_id, 1, &f_content_c, NULL);
+    glCompileShader(shader_id);
+
+    glDetachShader(instance.program, instance.vertex_id);
+    glDetachShader(instance.program, instance.fragment_id);
+
+    glAttachShader(instance.program, vertex_id);
+    glAttachShader(instance.program, shader_id);
+
+    glLinkProgram(instance.program);
+    glUseProgram(instance.program);
+
+    instance.vertex_id = vertex_id;
+    instance.fragment_id = shader_id;
+}
+
+void insert_shader(ShaderInstance &instance,
                    std::string const &fragment_input,
                    std::string const &fragment_code) {
 
-    // std::string const new_vertex = insert_string(instance.vertex,
-    // vertex_content);
     std::string const new_fragment =
         insert_string(instance.fragment, fragment_input, fragment_code);
 
-    load_shaders_content(instance.vertex.c_str(), instance.fragment.c_str());
+    swap_shaders(instance, instance.vertex, new_fragment);
 }
 
 std::string insert_string(std::string const &shader, std::string const &input,

@@ -104,15 +104,27 @@ struct Parameters {
     };
 };
 
+int const SLIDER_LENGTH = 500;
+void onButtonPress(int id);
+void onCreateOperation(int id);
+
+Coordinates const MENU_POS{100, 100};
+
+void init();
+Parameters &get_parameters();
+void createSliderDisplay(float *v, std::string const &name, float const &min,
+                         float const &max, Section *section);
+
 struct Operation {
     int rotation_x {};
     int rotation_y {};
     int rotation_z {};
+    float t{};
 
     Section* create_operation(int id, Section *parent) {
         if (id == rotation_x) {
             Section *s = parent->add_section("Rotation X", true);
-            s->add_item({sgCreateSlider(0, 0, 50, nullptr, 0, 0)});
+            createSliderDisplay(&t, "rotation: ", 0, 2*3.14, s);
         }
         else if (id == rotation_y) {
             Section *s = parent->add_section("Rotation Y", true);
@@ -125,16 +137,5 @@ struct Operation {
         return nullptr;
     }
 };
-
-void onButtonPress(int id);
-void onCreateOperation(int id);
-
-Coordinates const MENU_POS{100, 100};
-int const SLIDER_LENGTH = 500;
-
-void init();
-Parameters &get_parameters();
-void createSliderDisplay(float *v, std::string const &name, float const &min,
-                         float const &max, Section *section);
 
 } // namespace Menu

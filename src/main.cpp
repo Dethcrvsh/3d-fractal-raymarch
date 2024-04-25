@@ -37,22 +37,9 @@ float rotation1 = 0;
 float rotation2 = 0;
 vec3 offset = vec3(0.0, 0.0, 0.0);
 
-void init(void)
-{
+void init_arrays() {
     // vertex buffer object, used for uploading the geometry
     unsigned int vertex_buffer_obj_id;
-
-    dumpInfo();
-
-    // GL inits
-    glClearColor(0.2,0.2,0.5,0);
-    glDisable(GL_DEPTH_TEST);
-    printError("GL inits");
-
-    instance = load_shaders("shaders/shader.vert", "shaders/shader.frag");
-    program = instance.program;
-
-    printError("init shader");
 
     // Allocate and activate Vertex Array Object
     glGenVertexArrays(1, &vertex_array_obj_id);
@@ -69,11 +56,26 @@ void init(void)
     // Send the screen size to the shader
     glUniform2i(glGetUniformLocation(program, "in_ScreenSize"), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    Menu::init();
-
-    // insert_shader(instance, "//test", "//test");
-
     printError("init arrays");
+}
+
+void init(void)
+{
+
+    dumpInfo();
+
+    // GL inits
+    glClearColor(0.2,0.2,0.5,0);
+    glDisable(GL_DEPTH_TEST);
+    printError("GL inits");
+
+    instance = load_shaders("shaders/shader.vert", "shaders/shader.frag");
+    program = instance.program;
+    init_arrays();
+
+    printError("init shader");
+
+    Menu::init();
 }
 
 const float MOVE_SPEED = 0.0015;
@@ -131,6 +133,9 @@ void do_movement(float const delta)
 
 void display(void)
 {
+    insert_shader(instance, "", "");
+    init_arrays();
+
     // Handle time and delta time
     GLfloat time = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
     float const delta = time - previous_time;
