@@ -18,8 +18,7 @@ uniform int in_RayMarchIterations;
 
 out vec4 out_Color;
 
-// TODO: Replace this
-const float MIN_DIST = 0.05;
+/* INSERT INPUT */
 
 struct MarchResult
 {
@@ -108,6 +107,7 @@ float estimate_distance(const vec3 p)
 	    z = z * in_RotTest1;
         z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
         dr = dr * abs(in_Scale) + 1.0;
+        /* INSERT CODE */
     }
 
     return length(z) / abs(dr);

@@ -650,7 +650,7 @@ void sgDraw()
 		for (int i = 0; items[i] != NULL; i++)
 		{
             // I dont want to show hidden items
-            if (!items[i]->visible) {
+            if (!items[i]->visible || items[i]->itemType == -1) {
                 continue;
             }
 

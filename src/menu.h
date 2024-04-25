@@ -111,13 +111,16 @@ struct Operation {
 
     Section* create_operation(int id, Section *parent) {
         if (id == rotation_x) {
-            return parent->add_section("Rotation X", true);
+            Section *s = parent->add_section("Rotation X", true);
+            s->add_item({sgCreateSlider(0, 0, 50, nullptr, 0, 0)});
         }
         else if (id == rotation_y) {
-            return parent->add_section("Rotation Y");
+            Section *s = parent->add_section("Rotation Y", true);
+            s->add_item({sgCreateSlider(0, 0, 50, nullptr, 0, 0)});
         }
         else if (id == rotation_z) {
-            return parent->add_section("Rotation Z");
+            Section *s = parent->add_section("Rotation Z", true);
+            s->add_item({sgCreateSlider(0, 0, 50, nullptr, 0, 0)});
         }
         return nullptr;
     }

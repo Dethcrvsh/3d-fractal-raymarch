@@ -62,6 +62,9 @@ void Section::on_button_press(int id) {
         // Root should never have a close button
         parent->remove_section(this);
     }
+    else if (id == button_id) {
+        toggle(id);
+    }
 
     for (std::variant<Row*, Section*> child : children) {
         if (child.index() == SECTION_TYPE) {
@@ -71,37 +74,39 @@ void Section::on_button_press(int id) {
     }
 }
 
-// TODO: fix this spaghett
+// NOTE: Little hack for now, only root works as intended
 void Section::toggle(int id, bool root_visibility, bool set_visibility) {
-    // if (set_visibility) {
-    //     // The menu and title should always have the root visibility
-    //     sgSetVisibility(button_id, root_visibility);
-    //     sgSetVisibility(title_id, root_visibility);
+    if (id == button_id) {
+        set_visibility = true;
+        this->visible = !this->visible;
+        root_visibility = this->visible;
+    }
 
-    //     for (std::variant<int, Section*> child : children) {
-    //         if (child.index() == INT_TYPE) {
-    //             int const item = std::get<int>(child);
-    //             sgSetVisibility(item, visible && root_visibility);
-    //         } else if (child.index() == SECTION_TYPE) {
-    //             Section *section = std::get<Section*>(child);
-    //         }
-    //     }
-    // }
 
-    // if (id == button_id) {
-    //     set_visibility = true;
-    //     this->visible = !this->visible;
-    //     root_visibility = this->visible;
+    if (set_visibility) {
+        // The menu and title should always have the root visibility
+        if (id != button_id) {
+            sgSetVisibility(button_id, root_visibility);
+            sgSetVisibility(title_id, root_visibility);
+            sgSetVisibility(close_id, root_visibility);
 
-    //     // Skip the menu and title
-    //     for (int i = 2; i < items.size(); i++) {
-    //         sgSetVisibility(items[i], visible);
-    //     }
-    // }
+        }
 
-    // for (Section *section : sections) {
-    //     section->toggle(id, root_visibility, set_visibility);
-    // }
+        for (std::variant<Row*, Section*> child : children) {
+            if (child.index() == ROW_TYPE) {
+                Row *row = std::get<Row*>(child);
+
+
+                for (int const item : row->items) {
+                    sgSetVisibility(item, root_visibility);
+                }
+            } else if (child.index() == SECTION_TYPE) {
+                Section *section = std::get<Section*>(child);
+                section->toggle(id, root_visibility, set_visibility);
+            }
+        }
+    }
+
 }
 
 void Section::update_height(int const& new_height) {
@@ -125,7 +130,7 @@ void Section::update_helper() {
     for (std::variant<Row*, Section*> const child : children) {
         if (child.index() == ROW_TYPE) {
             Row *row = std::get<Row*>(child); 
-            int width {0};
+            int width {INDENT_WIDTH};
             
             for (const int item : row->items) {
                 sgPosItem(item, pos.x + width, pos.y + height);
@@ -134,10 +139,11 @@ void Section::update_helper() {
 
             height += row->height;
         } else if (child.index() == SECTION_TYPE) {
+            height += 25;
             Section* section = std::get<Section*>(child);
             section->pos = {pos.x + INDENT_WIDTH, pos.y + height};
             section->update_helper();
-            height += section->height + 25;
+            height += section->height;
         }
     }
 }

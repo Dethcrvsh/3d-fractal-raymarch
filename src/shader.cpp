@@ -5,7 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-
 ShaderInstance load_shaders(char const *vertex_path,
                             char const *fragment_path) {
 
@@ -15,7 +14,6 @@ ShaderInstance load_shaders(char const *vertex_path,
 
     return load_shaders_content(v_content, f_content);
 }
-
 
 ShaderInstance load_shaders_content(char const *v_content,
                                     char const *f_content) {
@@ -41,34 +39,44 @@ ShaderInstance load_shaders_content(char const *v_content,
     return instance;
 }
 
-
 void insert_shader(ShaderInstance const &instance,
-                   std::string const &vertex_content,
-                   std::string const &fragment_content) {
-    
-    std::string const new_vertex = insert_string(instance.vertex, vertex_content);
-    std::string const new_fragment = insert_string(instance.fragment, fragment_content);
+                   std::string const &fragment_input,
+                   std::string const &fragment_code) {
 
-    load_shaders_content(new_vertex.c_str(), new_fragment.c_str());
+    // std::string const new_vertex = insert_string(instance.vertex,
+    // vertex_content);
+    std::string const new_fragment =
+        insert_string(instance.fragment, fragment_input, fragment_code);
+
+    load_shaders_content(instance.vertex.c_str(), instance.fragment.c_str());
 }
 
-
-std::string insert_string(std::string const &shader,
-                          std::string const &content)
-{
+std::string insert_string(std::string const &shader, std::string const &input,
+                          std::string const &code) {
     std::istringstream stream(shader);
     std::string new_shader{};
     std::string line{};
 
-    while (std::getline(stream, line))
-    {
-        if (line == INSERT_MARKER)
-        {
-            new_shader += content + "\n";
+    while (std::getline(stream, line)) {
+        // Trim the leading and trailing whitespace
+        int const start = line.find_first_not_of(" \t");
+        int const end = line.find_last_not_of(" \t");
+
+        if (start == std::string::npos || end == std::string::npos) {
+            continue;
+        }
+
+        std::string const trimmed_line = line.substr(start, end - start + 1);
+
+        if (trimmed_line == INPUT_INSERT_MARKER) {
+            new_shader += input + "\n";
+        }
+
+        if (trimmed_line == CODE_INSERT_MARKER) {
+            new_shader += code + "\n";
         }
         new_shader += line + "\n";
     }
 
     return new_shader;
 }
-

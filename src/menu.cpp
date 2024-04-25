@@ -1,6 +1,5 @@
 #include "menu.h"
 #include "SimpleGUI.h"
-#include <unordered_map>
 #include <vector>
 
 namespace Menu {
@@ -48,7 +47,7 @@ void init() {
 void onButtonPress(int id) { main.on_button_press(id); }
 
 void onCreateOperation(int id) {
-    ops.create_operation(id, &main);
+    ops.create_operation(id, operations);
 }
 
 Parameters &get_parameters() { return params; }
