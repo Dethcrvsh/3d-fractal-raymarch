@@ -4,7 +4,6 @@
 #include "LittleOBJLoader.h"
 #include "shader.h"
 #include <GL/glext.h>
-#include <iostream>
 #include <math.h>
 #include "menu.h"
 #include "SimpleGUI.h"
@@ -128,7 +127,8 @@ void display(void)
     float const delta = time - previous_time;
     previous_time = time;
 
-    Menu::Parameters const params = Menu::get_parameters();
+    // Upload the menu parameters to the shaders
+    Menu::get_parameters().upload(program);
 
     do_movement(delta);
 
@@ -164,14 +164,7 @@ void display(void)
 
 	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
         camera.pos.x, camera.pos.y, camera.pos.z);
-
-	glUniform3f(glGetUniformLocation(program, "in_Offset"),
-        params.offset.x, params.offset.y, params.offset.z);
-
-	glUniform1f(glGetUniformLocation(program, "in_Scale"),
-        params.scale);
-
-
+    
     printError("pre display");
 
     // clear the screen

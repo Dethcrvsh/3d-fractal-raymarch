@@ -16,6 +16,13 @@ class Section;
 struct Parameters {
     float scale{2};
     vec3 offset{};
+    float iterations{12};
+
+    void upload(GLuint program) {
+        glUniform1f(glGetUniformLocation(program, "in_Scale"), scale);
+        glUniform3f(glGetUniformLocation(program, "in_Offset"), offset.x, offset.y,
+                    offset.z);
+    };
 };
 
 void onButtonPress(int id);
@@ -32,7 +39,7 @@ void createSliderDisplay(float *v, std::string const &name, float const &min,
 class Section {
 public:
     struct Row {
-        std::vector<int> items {};
+        std::vector<int> items{};
     };
 
     Section(int const &x, int const &y, std::string const &title,
@@ -74,7 +81,7 @@ private:
     int button_id;
     int title_id;
 
-    std::vector<std::variant<Row*, Section*>> children{};
+    std::vector<std::variant<Row *, Section *>> children{};
 };
 
 } // namespace Menu
