@@ -43,6 +43,7 @@ void createSliderDisplay(float *v, std::string const &name, float const &min,
 class Section {
 public:
     struct Row {
+        int height {PADDING.y};
         std::vector<int> items{};
     };
 
@@ -53,7 +54,7 @@ public:
 
     ~Section();
 
-    void add_item(std::initializer_list<int> &&items);
+    void add_item(std::initializer_list<int> &&items, int const &height = PADDING.x);
 
     Section *add_section(std::string const &title);
 

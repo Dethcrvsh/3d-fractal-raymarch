@@ -16,8 +16,9 @@ Section::Section(std::string const &title) : Section(0, 0, title) {}
 
 Section::~Section() {}
 
-void Section::add_item(std::initializer_list<int>&& items) {
+void Section::add_item(std::initializer_list<int>&& items, int const &height) {
     Row *row {new Row()};
+    row->height = height;
     row->items.insert(row->items.end(), items.begin(), items.end());
     children.push_back(row);
     update_height(0);
@@ -86,7 +87,7 @@ void Section::update_helper() {
                 width += sgGetItemWidth(item) + PADDING.x;
             }
 
-            height += PADDING.y;
+            height += row->height;
         } else if (child.index() == SECTION_TYPE) {
             Section* section = std::get<Section*>(child);
             section->pos = {pos.x + INDENT_WIDTH, pos.y + height};
