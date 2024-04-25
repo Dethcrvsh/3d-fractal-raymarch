@@ -75,7 +75,7 @@ void init(void)
 
     printError("init arrays");
 
-	sgCreateSlider(100, 100, 500, &scale, -4, 4);
+	sgCreateSlider(100, 100, 500, &scale, -6, 6);
 	sgCreateSlider(100, 120, 500, &rotation1, -M_PI, M_PI);
 	sgCreateSlider(100, 140, 500, &rotation2, -M_PI, M_PI);
 	sgCreateSliderVec3Group(100, 160, 500, (float*)&offset, -4, 4);
@@ -212,12 +212,13 @@ void drag(int x, int y)
 
 int main(int argc, char *argv[])
 {
+	camera.pos = vec3(0, 0, 10);
     glutInit(&argc, argv);
     glutInitContextVersion(3, 2);
     glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     glutCreateWindow ("Raymarch fractal");
     glutDisplayFunc(display); 
-    glutRepeatingTimer(64);
+    glutRepeatingTimer(42);
     glutPassiveMotionFunc(mouse_moved);
     glutMouseFunc(mouse);
     glutMotionFunc(drag);
