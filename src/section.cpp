@@ -1,6 +1,5 @@
 #include "SimpleGUI.h"
 #include "menu.h"
-#include <iostream>
 
 using namespace Menu;
 

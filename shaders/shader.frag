@@ -8,6 +8,7 @@ uniform mat4 in_RotTest2;
 uniform vec3 in_CamPosition;
 uniform float in_Scale;
 uniform vec3 in_Offset;
+uniform int in_DistEstIter;
 out vec4 out_Color;
 
 const float MIN_DIST = 0.05;
@@ -86,13 +87,12 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const int MAX_ITER = 10;
     const float BAILOUT = 10000;
 
     vec4 z = vec4(p, 0);
     float dr = 1.0;
 
-    for (int i = 0; i < MAX_ITER; i++)
+    for (int i = 0; i < in_DistEstIter; i++)
     {
 	    box_fold(z, 1);
 	    z = z * in_RotTest2;

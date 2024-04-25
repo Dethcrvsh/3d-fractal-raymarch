@@ -3,6 +3,9 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <iostream>
+
+#pragma once
 
 struct Coordinates {
     int x;
@@ -22,6 +25,7 @@ struct Parameters {
         glUniform1f(glGetUniformLocation(program, "in_Scale"), scale);
         glUniform3f(glGetUniformLocation(program, "in_Offset"), offset.x, offset.y,
                     offset.z);
+        glUniform1i(glGetUniformLocation(program, "in_DistEstIter"), static_cast<int>(iterations));
     };
 };
 
