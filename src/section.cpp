@@ -1,5 +1,6 @@
 #include "SimpleGUI.h"
 #include "menu.h"
+#include <iostream>
 
 using namespace Menu;
 
@@ -17,15 +18,10 @@ Section::Section(std::string const &title) : Section(0, 0, title) {}
 Section::~Section() {}
 
 void Section::add_item(std::initializer_list<int>&& items) {
-    if (items.size() == 1) {
-        children.insert(children.end(), items.begin(), items.end());
-        update_height(PADDING.y);
-    } else {
-        children.insert(children.end(), items.begin(), items.end());
-        update_height(PADDING.y);
-        for (int const item : items) {
-        }
-    }
+    Row *row {new Row()};
+    row->items.insert(row->items.end(), items.begin(), items.end());
+    children.push_back(row);
+    update_height(0);
 }
 
 Section* Section::add_section(std::string const& title) {
@@ -81,10 +77,16 @@ void Section::update_helper() {
     sgPosItem(title_id, pos.x + BUTTON_WIDTH, pos.y);
     height = TITLE_HEIGHT;
 
-    for (std::variant<int, Section*> const child : children) {
-        if (child.index() == INT_TYPE) {
-            int const item = std::get<int>(child); 
-            sgPosItem(item, pos.x, pos.y + height);
+    for (std::variant<Row*, Section*> const child : children) {
+        if (child.index() == ROW_TYPE) {
+            Row *row = std::get<Row*>(child); 
+            int width {0};
+            
+            for (const int item : row->items) {
+                sgPosItem(item, pos.x + width, pos.y + height);
+                width += sgGetItemWidth(item) + PADDING.x;
+            }
+
             height += PADDING.y;
         } else if (child.index() == SECTION_TYPE) {
             Section* section = std::get<Section*>(child);

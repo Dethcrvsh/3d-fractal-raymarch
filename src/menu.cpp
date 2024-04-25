@@ -1,6 +1,7 @@
 #include "menu.h"
 #include "SimpleGUI.h"
 #include <vector>
+#include <iostream>
 
 namespace Menu {
 
@@ -10,6 +11,7 @@ std::vector<int> items;
 Section main{100, 100, "menu"};
 Section *dist_est{main.add_section("distance_estimator")};
 Section *ray_march{main.add_section("ray_march")};
+
 
 void init() {
     createSliderDisplay(&params.scale, "scale", -4, 4, dist_est);

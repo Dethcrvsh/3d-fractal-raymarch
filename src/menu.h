@@ -31,7 +31,7 @@ void createSliderDisplay(float *v, std::string const &name, float const &min,
 /* A standalone part of the menu */
 class Section {
 public:
-    struct Component {
+    struct Row {
         std::vector<int> items {};
     };
 
@@ -66,7 +66,7 @@ private:
     constexpr static Coordinates const PADDING{20, 20};
 
     // Constants used for checking variant types
-    static int const INT_TYPE = 0;
+    static int const ROW_TYPE = 0;
     static int const SECTION_TYPE = 1;
 
     bool visible{true};
@@ -74,7 +74,7 @@ private:
     int button_id;
     int title_id;
 
-    std::vector<std::variant<int, Section *>> children{};
+    std::vector<std::variant<Row*, Section*>> children{};
 };
 
 } // namespace Menu
