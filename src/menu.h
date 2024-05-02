@@ -104,20 +104,41 @@ struct Operation : public Section {
     virtual void upload(GLuint program) = 0;
 };
 
-struct Rotation_X : public Operation {
+struct Rotation : public Operation {
     constexpr float static const MIN{-3.14};
     constexpr float static const MAX{3.14};
     float angle{};
     std::string angle_var {gen_var_name()};
 
-    Rotation_X(int const &x, int const &y, std::string const &title,
+    Rotation(int const &x, int const &y, std::string const &title,
               Section *parent = nullptr, bool close_button = false);
 
     std::string s_get_variable() override;
     std::string s_get_code() const override;
     void upload(GLuint program) override;
 
-    std::array<GLfloat, 16> get_matrix();
+    virtual std::array<GLfloat, 16> get_matrix() = 0;
+};
+
+struct Rotation_X : public Rotation {
+    Rotation_X(int const &x, int const &y, std::string const &title,
+              Section *parent = nullptr, bool close_button = false);
+
+    std::array<GLfloat, 16> get_matrix() override;
+};
+
+struct Rotation_Y : public Rotation {
+    Rotation_Y(int const &x, int const &y, std::string const &title,
+              Section *parent = nullptr, bool close_button = false);
+
+    std::array<GLfloat, 16> get_matrix() override;
+};
+
+struct Rotation_Z : public Rotation {
+    Rotation_Z(int const &x, int const &y, std::string const &title,
+              Section *parent = nullptr, bool close_button = false);
+
+    std::array<GLfloat, 16> get_matrix() override;
 };
 
 /* Map button presses to the creation of operations */
@@ -143,44 +164,13 @@ struct Parameters {
 
     bool has_changed {};
 
-    std::string get_variables() {
-        has_changed = false;
-        std::string vars{};
+    std::string get_variables();
 
-        for (Operation *op : ops) {
-            vars += op->s_get_variable() + "\n";
-        }
-        return vars;
-    }
+    std::string get_code();
 
-    std::string get_code() {
-        has_changed = false;
-        std::string code{};
-
-        for (Operation *op : ops) {
-            code += op->s_get_code() + "\n";
-        }
-        return code;
-    }
-
-    void upload(GLuint program) {
-        // Distance Estimator
-        glUniform1f(glGetUniformLocation(program, "in_Scale"), scale);
-        glUniform3f(glGetUniformLocation(program, "in_Offset"), offset.x, offset.y,
-                    offset.z);
-        glUniform1i(glGetUniformLocation(program, "in_DistEstIter"),
-                    static_cast<int>(dist_iterations));
-
-        // Ray March
-        glUniform1f(glGetUniformLocation(program, "in_RayMarchMinDist"), min_dist);
-        glUniform1i(glGetUniformLocation(program, "in_RayMarchIterations"),
-                    static_cast<int>(ray_iterations));
-
-        for (Operation* op : ops) {
-            op->upload(program);
-        }
-    };
+    void upload(GLuint program);
 };
 
 Parameters *get_parameters();
+
 } // namespace Menu
