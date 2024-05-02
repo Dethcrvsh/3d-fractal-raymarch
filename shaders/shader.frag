@@ -105,9 +105,11 @@ float estimate_distance(const vec3 p)
 	    z = z * in_RotTest2;
         sphereFold(z, dr);
 	    z = z * in_RotTest1;
+
+        /* INSERT CODE */
+
         z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
         dr = dr * abs(in_Scale) + 1.0;
-        /* INSERT CODE */
     }
 
     return length(z) / abs(dr);

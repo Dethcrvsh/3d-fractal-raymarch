@@ -43,13 +43,17 @@ void init() {
     operations->add_item({i4, i5});
 }
 
-void onButtonPress(int id) { main.on_button_press(id); }
+void onButtonPress(int id) {
+    params.has_changed = true;
+    main.on_button_press(id);
+}
 
 void onCreateOperation(int id) {
+    params.has_changed = true;
     op_map.create(id, operations);
 }
 
-Parameters &get_parameters() {
+Parameters *get_parameters() {
     params.ops.clear();
 
     for (Section *section : operations->get_sections()) {
@@ -57,7 +61,7 @@ Parameters &get_parameters() {
         params.ops.push_back(dynamic_cast<Operation*>(section));
     }
 
-    return params;
+    return &params;
 }
 
 void createSliderDisplay(float *v, std::string const &name, float const &min,

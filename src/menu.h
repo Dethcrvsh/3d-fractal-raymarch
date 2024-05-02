@@ -110,18 +110,14 @@ struct Rotation_X : public Operation {
     float angle{};
     std::string angle_var {gen_var_name()};
 
-    GLfloat rot_matrix[16] = {cos(-angle), 0.0f, sin(-angle), 0.0f, 
-						     0.0f,         1.0f, 0.0f,        0.0f,
-                             -sin(-angle), 0.0f, cos(-angle), 0.0f, 
-						     0.0f,         0.0f, 0.0f,        1.0f
-    };
-
     Rotation_X(int const &x, int const &y, std::string const &title,
               Section *parent = nullptr, bool close_button = false);
 
     std::string s_get_variable() override;
     std::string s_get_code() const override;
     void upload(GLuint program) override;
+
+    std::array<GLfloat, 16> get_matrix();
 };
 
 /* Map button presses to the creation of operations */
@@ -145,7 +141,10 @@ struct Parameters {
 
     std::vector<Operation*> ops {};
 
+    bool has_changed {};
+
     std::string get_variables() {
+        has_changed = false;
         std::string vars{};
 
         for (Operation *op : ops) {
@@ -155,6 +154,7 @@ struct Parameters {
     }
 
     std::string get_code() {
+        has_changed = false;
         std::string code{};
 
         for (Operation *op : ops) {
@@ -182,5 +182,5 @@ struct Parameters {
     };
 };
 
-Parameters &get_parameters();
+Parameters *get_parameters();
 } // namespace Menu

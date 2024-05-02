@@ -139,12 +139,14 @@ void display(void)
     previous_time = time;
 
     // Upload the menu parameters to the shaders
-    Menu::Parameters params {Menu::get_parameters()};
+    Menu::Parameters *params {Menu::get_parameters()};
 
-    insert_shader(instance, params.get_variables(), params.get_code());
-    init_arrays();
+    if (params->has_changed) {
+        insert_shader(instance, params->get_variables(), params->get_code());
+        init_arrays();
+    }
 
-    params.upload(program);
+    params->upload(program);
 
     do_movement(delta);
 

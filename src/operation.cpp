@@ -1,4 +1,5 @@
 #include "menu.h"
+#include <array>
 
 Menu::Operation::Operation(int const &x, int const &y, std::string const &title,
                            Section *parent, bool close_button)
@@ -49,5 +50,14 @@ std::string Menu::Rotation_X::s_get_code() const {
 };
 
 void Menu::Rotation_X::upload(GLuint program) {
-    glUniformMatrix4fv(glGetUniformLocation(program, angle_var.c_str()), 1, GL_TRUE, rot_matrix);
+    glUniformMatrix4fv(glGetUniformLocation(program, angle_var.c_str()), 1, GL_TRUE, get_matrix().data());
+};
+
+std::array<GLfloat, 16> Menu::Rotation_X::get_matrix() {
+    return {
+        cos(-angle),  0.0f, sin(-angle), 0.0f, 
+		0.0f,         1.0f, 0.0f,        0.0f,
+        -sin(-angle), 0.0f, cos(-angle), 0.0f, 
+		0.0f,         0.0f, 0.0f,        1.0f
+    };
 };
