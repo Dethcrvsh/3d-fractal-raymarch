@@ -5,7 +5,7 @@
 namespace Menu {
 
 Parameters params{};
-Operation ops{};
+OperationMap op_map{};
 std::vector<int> items;
 
 Section main{100, 100, "menu"};
@@ -28,14 +28,13 @@ void init() {
     // Operations
     // NOTE Just test code for now
     int const i1 = sgCreateButton(0, 0, "New X Rotation", &onCreateOperation);
-    ops.rotation_x = i1;
+    op_map.rotation_x = i1;
 
     int const i2 = sgCreateButton(0, 0, "New Y Rotation", &onCreateOperation);
-    ops.rotation_y = i2;
+    op_map.rotation_y = i2;
 
     int const i3 = sgCreateButton(0, 0, "New Z Rotation", &onCreateOperation);
-    ops.rotation_z = i3;
-
+    op_map.rotation_z = i3;
 
     int const i4 = sgCreateButton(0, 0, "New BoxFold", nullptr);
     int const i5 = sgCreateButton(0, 0, "New SphereFold", nullptr);
@@ -47,10 +46,19 @@ void init() {
 void onButtonPress(int id) { main.on_button_press(id); }
 
 void onCreateOperation(int id) {
-    ops.create_operation(id, operations);
+    op_map.create(id, operations);
 }
 
-Parameters &get_parameters() { return params; }
+Parameters &get_parameters() {
+    params.ops.clear();
+
+    for (Section *section : operations->get_sections()) {
+        // Kinda dangerous ngl
+        params.ops.push_back(dynamic_cast<Operation*>(section));
+    }
+
+    return params;
+}
 
 void createSliderDisplay(float *v, std::string const &name, float const &min,
                          float const &max, Section *section) {

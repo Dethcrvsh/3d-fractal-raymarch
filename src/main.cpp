@@ -133,16 +133,18 @@ void do_movement(float const delta)
 
 void display(void)
 {
-    insert_shader(instance, "", "");
-    init_arrays();
-
     // Handle time and delta time
     GLfloat time = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
     float const delta = time - previous_time;
     previous_time = time;
 
     // Upload the menu parameters to the shaders
-    Menu::get_parameters().upload(program);
+    Menu::Parameters params {Menu::get_parameters()};
+
+    insert_shader(instance, params.get_variables(), params.get_code());
+    init_arrays();
+
+    params.upload(program);
 
     do_movement(delta);
 

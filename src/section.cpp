@@ -16,8 +16,6 @@ Section::Section(int const &x, int const &y, std::string const &title, Section *
     update_height(30);
 }
 
-Section::Section(std::string const &title) : Section(0, 0, title) {}
-
 Section::~Section() {
     sgRemoveItem(button_id);
     sgRemoveItem(title_id);
@@ -49,6 +47,23 @@ Section* Section::add_section(std::string const& title, bool close_button) {
     update_height(0);
     return section;
 }
+
+Section* Section::add_section(Section *section) {
+    children.push_back(section);
+    update_height(0);
+    return section;
+};
+
+std::vector<Section*> Section::get_sections() {
+    std::vector<Section*> sections{};
+
+    for (std::variant child : children) {
+        if (child.index() == SECTION_TYPE) {
+            sections.push_back(std::get<Section*>(child));
+        }
+    }
+    return sections;
+};
 
 void Section::remove_section(Section *section) {
     auto remove_it = std::find(children.begin(), children.end(), std::variant<Row*, Section*>(section));

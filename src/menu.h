@@ -2,6 +2,7 @@
 #include "SimpleGUI.h"
 #include <initializer_list>
 #include <iostream>
+#include <random>
 #include <string>
 #include <variant>
 #include <vector>
@@ -32,14 +33,15 @@ public:
     Section(int const &x, int const &y, std::string const &title,
             Section *parent = nullptr, bool close_button = false);
 
-    Section(std::string const &title);
-
-    ~Section();
+    virtual ~Section();
 
     void add_item(std::initializer_list<int> &&items,
                   int const &height = PADDING.x);
 
     Section *add_section(std::string const &title, bool close_button = false);
+    Section *add_section(Section *section);
+
+    std::vector<Section*> get_sections();
 
     void remove_section(Section *section);
 
@@ -74,9 +76,61 @@ private:
     int button_id;
     int title_id;
     // The sections close button. Not all sections have this.
-    int close_id {-1};
+    int close_id{-1};
 
     std::vector<std::variant<Row *, Section *>> children{};
+};
+
+int const SLIDER_LENGTH = 500;
+void onButtonPress(int id);
+void onCreateOperation(int id);
+
+Coordinates const MENU_POS{100, 100};
+
+void init();
+void createSliderDisplay(float *v, std::string const &name, float const &min,
+                         float const &max, Section *section);
+
+struct Operation : public Section {
+    Operation(int const &x, int const &y, std::string const &title,
+              Section *parent = nullptr, bool close_button = false);
+
+    std::string gen_var_name() const;
+
+    virtual std::string s_get_variable() = 0;
+
+    virtual std::string s_get_code() const = 0;
+
+    virtual void upload(GLuint program) = 0;
+};
+
+struct Rotation_X : public Operation {
+    constexpr float static const MIN{-3.14};
+    constexpr float static const MAX{3.14};
+    float angle{};
+    std::string angle_var {gen_var_name()};
+
+    GLfloat rot_matrix[16] = {cos(-angle), 0.0f, sin(-angle), 0.0f, 
+						     0.0f,         1.0f, 0.0f,        0.0f,
+                             -sin(-angle), 0.0f, cos(-angle), 0.0f, 
+						     0.0f,         0.0f, 0.0f,        1.0f
+    };
+
+    Rotation_X(int const &x, int const &y, std::string const &title,
+              Section *parent = nullptr, bool close_button = false);
+
+    std::string s_get_variable() override;
+    std::string s_get_code() const override;
+    void upload(GLuint program) override;
+};
+
+/* Map button presses to the creation of operations */
+struct OperationMap {
+    int rotation_x;
+    int rotation_y;
+    int rotation_z;
+    
+    void create(int id, Section *parent);
 };
 
 struct Parameters {
@@ -88,6 +142,26 @@ struct Parameters {
     // Ray march
     float min_dist{0.05};
     float ray_iterations{32};
+
+    std::vector<Operation*> ops {};
+
+    std::string get_variables() {
+        std::string vars{};
+
+        for (Operation *op : ops) {
+            vars += op->s_get_variable() + "\n";
+        }
+        return vars;
+    }
+
+    std::string get_code() {
+        std::string code{};
+
+        for (Operation *op : ops) {
+            code += op->s_get_code() + "\n";
+        }
+        return code;
+    }
 
     void upload(GLuint program) {
         // Distance Estimator
@@ -101,41 +175,12 @@ struct Parameters {
         glUniform1f(glGetUniformLocation(program, "in_RayMarchMinDist"), min_dist);
         glUniform1i(glGetUniformLocation(program, "in_RayMarchIterations"),
                     static_cast<int>(ray_iterations));
+
+        for (Operation* op : ops) {
+            op->upload(program);
+        }
     };
 };
 
-int const SLIDER_LENGTH = 500;
-void onButtonPress(int id);
-void onCreateOperation(int id);
-
-Coordinates const MENU_POS{100, 100};
-
-void init();
 Parameters &get_parameters();
-void createSliderDisplay(float *v, std::string const &name, float const &min,
-                         float const &max, Section *section);
-
-struct Operation {
-    int rotation_x {};
-    int rotation_y {};
-    int rotation_z {};
-    float t{};
-
-    Section* create_operation(int id, Section *parent) {
-        if (id == rotation_x) {
-            Section *s = parent->add_section("Rotation X", true);
-            createSliderDisplay(&t, "rotation: ", 0, 2*3.14, s);
-        }
-        else if (id == rotation_y) {
-            Section *s = parent->add_section("Rotation Y", true);
-            s->add_item({sgCreateSlider(0, 0, 50, nullptr, 0, 0)});
-        }
-        else if (id == rotation_z) {
-            Section *s = parent->add_section("Rotation Z", true);
-            s->add_item({sgCreateSlider(0, 0, 50, nullptr, 0, 0)});
-        }
-        return nullptr;
-    }
-};
-
 } // namespace Menu
