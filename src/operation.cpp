@@ -8,7 +8,7 @@ Menu::Operation::Operation(int const &x, int const &y, std::string const &title,
 std::string Menu::Operation::gen_var_name() const {
     int const LENGTH = 16;
     std::string const CHARSET =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, CHARSET.length() - 1);
@@ -31,6 +31,9 @@ void Menu::OperationMap::create(int id, Section *parent) {
         parent->add_section(op);
     } else if (id == rotation_z) {
         Operation *op = new Rotation_Z(0, 0, "Rotation_Z", parent, true);
+        parent->add_section(op);
+    } else if (id == box_fold) {
+        Operation *op = new BoxFold(0, 0, "BoxFold", parent, true);
         parent->add_section(op);
     }
 }
@@ -105,4 +108,24 @@ std::array<GLfloat, 16> Menu::Rotation_Z::get_matrix() {
         0, 0, 0, 1
     };
 };
+
+/* BOX FOLD */
+
+Menu::BoxFold::BoxFold(int const &x, int const &y,
+                             std::string const &title, Section *parent,
+                             bool close_button)
+: Operation(x, y, title, parent, close_button) {
+    createSliderDisplay(&fold_limit, "fold limit: ", MIN, MAX, this);
+}
+
+std::string Menu::BoxFold::s_get_variable() {
+    return "uniform float " + fold_limit_var + ";"; 
+}
+std::string Menu::BoxFold::s_get_code() const {
+    return "box_fold(z, " + fold_limit_var + ");";
+
+}
+void Menu::BoxFold::upload(GLuint program) {
+    glUniform1f(glGetUniformLocation(program, fold_limit_var.c_str()), fold_limit);
+}
 

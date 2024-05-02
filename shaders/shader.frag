@@ -3,8 +3,6 @@
 uniform ivec2 in_ScreenSize;
 uniform mat4 in_CamRotX;
 uniform mat4 in_CamRotY;
-uniform mat4 in_RotTest1;
-uniform mat4 in_RotTest2;
 uniform vec3 in_CamPosition;
 
 // Distance Estimator
@@ -101,10 +99,8 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < in_DistEstIter; i++)
     {
-	    box_fold(z, 1);
-	    z = z * in_RotTest2;
-        sphereFold(z, dr);
-	    z = z * in_RotTest1;
+	    // box_fold(z, 1);
+     //    sphereFold(z, dr);
 
         /* INSERT CODE */
 

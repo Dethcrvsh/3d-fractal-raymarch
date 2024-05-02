@@ -161,24 +161,10 @@ void display(void)
                              -sin(-camera.angle.x), 0.0f, cos(-camera.angle.x), 0.0f, 
 						     0.0f, 0.0f, 0.0f, 1.0f};
 
-    GLfloat rotMatrix1[] = {cos(-rotation1), 0.0f, sin(-rotation1), 0.0f, 
-						     0.0f, 1.0f, 0.0f, 0.0f,
-                             -sin(-rotation1), 0.0f, cos(-rotation1), 0.0f, 
-						     0.0f, 0.0f, 0.0f, 1.0f};
-
-    GLfloat rotMatrix2[] = {1.0f, 0.0f, 0.0f, 0.0f,
-						     0.0f, cos(-rotation2), -sin(-rotation2), 0.0f, 
-							 0.0f, sin(-rotation2), cos(-rotation2), 0.0f,
-						     0.0f, 0.0f, 0.0f, 1.0f};
-
     // Send camera data to shader
     glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotX"), 1, GL_TRUE, rotMatrix_x);
 
     glUniformMatrix4fv(glGetUniformLocation(program, "in_CamRotY"), 1, GL_TRUE, rotMatrix_y);
-
-    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest1"), 1, GL_TRUE, rotMatrix1);
-
-    glUniformMatrix4fv(glGetUniformLocation(program, "in_RotTest2"), 1, GL_TRUE, rotMatrix2);
 
 	glUniform3f(glGetUniformLocation(program, "in_CamPosition"),
         camera.pos.x, camera.pos.y, camera.pos.z);

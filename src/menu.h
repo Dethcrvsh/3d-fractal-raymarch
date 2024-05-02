@@ -41,7 +41,7 @@ public:
     Section *add_section(std::string const &title, bool close_button = false);
     Section *add_section(Section *section);
 
-    std::vector<Section*> get_sections();
+    std::vector<Section *> get_sections();
 
     void remove_section(Section *section);
 
@@ -108,10 +108,10 @@ struct Rotation : public Operation {
     constexpr float static const MIN{-3.14};
     constexpr float static const MAX{3.14};
     float angle{};
-    std::string angle_var {gen_var_name()};
+    std::string angle_var{gen_var_name()};
 
     Rotation(int const &x, int const &y, std::string const &title,
-              Section *parent = nullptr, bool close_button = false);
+             Section *parent = nullptr, bool close_button = false);
 
     std::string s_get_variable() override;
     std::string s_get_code() const override;
@@ -122,23 +122,38 @@ struct Rotation : public Operation {
 
 struct Rotation_X : public Rotation {
     Rotation_X(int const &x, int const &y, std::string const &title,
-              Section *parent = nullptr, bool close_button = false);
+               Section *parent = nullptr, bool close_button = false);
 
     std::array<GLfloat, 16> get_matrix() override;
 };
 
 struct Rotation_Y : public Rotation {
     Rotation_Y(int const &x, int const &y, std::string const &title,
-              Section *parent = nullptr, bool close_button = false);
+               Section *parent = nullptr, bool close_button = false);
 
     std::array<GLfloat, 16> get_matrix() override;
 };
 
 struct Rotation_Z : public Rotation {
     Rotation_Z(int const &x, int const &y, std::string const &title,
-              Section *parent = nullptr, bool close_button = false);
+               Section *parent = nullptr, bool close_button = false);
 
     std::array<GLfloat, 16> get_matrix() override;
+};
+
+struct BoxFold : public Operation {
+    constexpr float static const MIN{0};
+    constexpr float static const MAX{5};
+
+    float fold_limit{1};
+    std::string fold_limit_var {gen_var_name()};
+
+    BoxFold(int const &x, int const &y, std::string const &title,
+            Section *parent = nullptr, bool close_button = false);
+
+    std::string s_get_variable() override;
+    std::string s_get_code() const override;
+    void upload(GLuint program) override;
 };
 
 /* Map button presses to the creation of operations */
@@ -146,7 +161,8 @@ struct OperationMap {
     int rotation_x;
     int rotation_y;
     int rotation_z;
-    
+    int box_fold;
+
     void create(int id, Section *parent);
 };
 
@@ -160,9 +176,9 @@ struct Parameters {
     float min_dist{0.05};
     float ray_iterations{32};
 
-    std::vector<Operation*> ops {};
+    std::vector<Operation *> ops{};
 
-    bool has_changed {};
+    bool has_changed{};
 
     std::string get_variables();
 

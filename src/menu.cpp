@@ -36,7 +36,9 @@ void init() {
     int const i3 = sgCreateButton(0, 0, "New Z Rotation", &onCreateOperation);
     op_map.rotation_z = i3;
 
-    int const i4 = sgCreateButton(0, 0, "New BoxFold", nullptr);
+    int const i4 = sgCreateButton(0, 0, "New BoxFold", &onCreateOperation);
+    op_map.box_fold = i4;
+
     int const i5 = sgCreateButton(0, 0, "New SphereFold", nullptr);
 
     operations->add_item({i1, i2, i3});
