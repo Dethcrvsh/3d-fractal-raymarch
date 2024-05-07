@@ -103,7 +103,7 @@ float estimate_distance_color(const vec3 p)
 		min_dist = min(min_dist, length(z));
     }
 
-    return min_dist;
+    return min_dist / in_Scale;
 }
 
 float estimate_distance(const vec3 p)
@@ -169,7 +169,7 @@ MarchResult ray_march(const vec3 start, const vec3 dir)
 vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 {
     // Calculate color from distance to origin
-    float gradient = min(1, estimate_distance_color(curr_pos)*200);
+    float gradient = min(1, estimate_distance_color(curr_pos));
     vec3 color = vec3(0.9, 0.2, 0.2)*(gradient) + vec3(0.2, 0.2, 0.9)*(1 - gradient);
 
     // Calculate ambient occlusion
