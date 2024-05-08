@@ -46,7 +46,7 @@ public:
 
     void on_button_press(int id);
 
-    void toggle(int id, bool root_visibility = false,
+    void toggle(int id, bool root_visibility = false, bool parent_visibility = false,
                 bool set_visibility = false);
 
 protected:

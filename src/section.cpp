@@ -1,6 +1,8 @@
 #include "SimpleGUI.h"
 #include "menu.h"
 #include <algorithm>
+#include <iostream>
+#include <ostream>
 
 using namespace Menu;
 
@@ -79,6 +81,7 @@ void Section::on_button_press(int id) {
     }
     else if (id == button_id) {
         toggle(id);
+        update_height(0);
     }
 
     for (std::variant<Row*, Section*> child : children) {
@@ -90,11 +93,12 @@ void Section::on_button_press(int id) {
 }
 
 // NOTE: Little hack for now, only root works as intended
-void Section::toggle(int id, bool root_visibility, bool set_visibility) {
+void Section::toggle(int id, bool root_visibility, bool parent_visibility, bool set_visibility) {
     if (id == button_id) {
         set_visibility = true;
         this->visible = !this->visible;
         root_visibility = this->visible;
+        parent_visibility = root_visibility;
     }
 
     if (set_visibility) {
@@ -110,13 +114,16 @@ void Section::toggle(int id, bool root_visibility, bool set_visibility) {
             if (child.index() == ROW_TYPE) {
                 Row *row = std::get<Row*>(child);
 
-
                 for (int const item : row->items) {
-                    sgSetVisibility(item, root_visibility);
+                    sgSetVisibility(item, parent_visibility);
                 }
             } else if (child.index() == SECTION_TYPE) {
                 Section *section = std::get<Section*>(child);
-                section->toggle(id, root_visibility, set_visibility);
+                if (parent_visibility) {
+                    section->toggle(id, root_visibility, section->visible, set_visibility);
+                } else {
+                    section->toggle(id, root_visibility, false, set_visibility);
+                }
             }
         }
     }
@@ -156,7 +163,7 @@ void Section::update_helper() {
             Section* section = std::get<Section*>(child);
             section->pos = {pos.x + INDENT_WIDTH, pos.y + height};
             section->update_helper();
-            height += section->height;
+            height += section->height * section->visible;
         }
     }
 }
