@@ -45,7 +45,7 @@ void box_fold(inout vec4 z, const float fold_limit)
 }
 
 void sphere_fold(inout vec4 z, inout float dz, const float fixedRadius) {
-    float minRadius = 1;
+    float minRadius = 0.1;
     float r = dot(z,z);
     if (r<minRadius) { 
             // linear inner scaling
