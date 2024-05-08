@@ -222,7 +222,7 @@ struct Parameters {
     float dist_iterations{12};
 
     // Ray march
-    float min_dist{0.05};
+    float min_dist{0.005};
     float ray_iterations{32};
 
     // Color

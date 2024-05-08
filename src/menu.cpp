@@ -22,11 +22,11 @@ void init() {
     createSliderDisplay(&params.offset.x, "offset x: ", -8, 8, dist_est);
     createSliderDisplay(&params.offset.y, "offset y: ", -8, 8, dist_est);
     createSliderDisplay(&params.offset.z, "offset z: ", -8, 8, dist_est);
-    createSliderDisplay(&params.dist_iterations, "iterations: ", 1, 50, dist_est);
+    createSliderDisplay(&params.dist_iterations, "iterations: ", 0, 50, dist_est);
 
     // Ray March
-    createSliderDisplay(&params.min_dist, "min dist: ", 0, 0.2, ray_march);
-    createSliderDisplay(&params.ray_iterations, "iterations: ", 1, 500, ray_march);
+    createSliderDisplay(&params.min_dist, "min dist: ", 0, 0.01, ray_march);
+    createSliderDisplay(&params.ray_iterations, "iterations: ", 1, 300, ray_march);
 
     // Color
     

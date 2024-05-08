@@ -45,7 +45,7 @@ void box_fold(inout vec4 z, const float fold_limit)
 }
 
 void sphere_fold(inout vec4 z, inout float dz, const float fixedRadius) {
-    float minRadius = 0.0001;
+    float minRadius = 1;
     float r = dot(z,z);
     if (r<minRadius) { 
             // linear inner scaling
@@ -98,8 +98,6 @@ void mengerFold(inout vec4 z, const float limit) {
 
 float estimate_distance(const vec3 p)
 {
-    const float BAILOUT = 10000;
-
     vec4 z = vec4(p, 0);
     float dr = 1.0;
 
@@ -107,8 +105,8 @@ float estimate_distance(const vec3 p)
     {
         /* INSERT CODE */
 
-        z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
-        dr = dr * abs(in_Scale) + 1.0;
+        z = z * in_Scale + vec4(in_Offset, 0) * (in_Scale);
+        dr = dr * abs(in_Scale);
     }
 
     return length(z) / abs(dr);
@@ -158,7 +156,7 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
     vec3 color = in_PrimaryColor*(gradient) + in_SecondaryColor*(1 - gradient);
 
     // Calculate ambient occlusion
-    vec4 amb_color = vec4((color), 1); //* max(0.3, pow(0.98, iter)), 1.0);
+    vec4 amb_color = vec4((color) * max(0.3, pow(0.985, iter)), 1.0);
     //vec4 amb_color = vec4((color) * max(0.3, (1-float(iter)/float(500))) , 1.0);
 
     // Calculate color
@@ -168,8 +166,8 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
     const vec3 LIGHT_DIR = normalize(vec3(0.8, 0.5, 1));
     const float INTENSITY_DIF = 1.0;
     const float INTENSITY_AMB = 0.8;
-    const float INTENSITY_SPEC = 1.0;
-    const float ALPHA = 20;
+    const float INTENSITY_SPEC = 0.9;
+    const float ALPHA = 12;
 
     // Normals
     vec3 pos = curr_pos - dir*in_RayMarchMinDist*2; // Backtrack to get better normals
@@ -187,10 +185,10 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 
     // Calculate shadows
     MarchResult result = ray_march(pos, LIGHT_DIR);
-    float shadow = 0.4 + 0.6 * result.near_miss_angle;
+    float shadow = 0.5 + 0.5 * result.near_miss_angle;
     //spec_light = spec_light * result.near_miss_angle;
     if(result.did_hit){
-        shadow = 0.4;
+        shadow = 0.5;
     }
 
 	return amb_color * (amb_light + dif_light + spec_light) * shadow;
