@@ -33,6 +33,17 @@ void Menu::Parameters::upload(GLuint program) {
     glUniform1i(glGetUniformLocation(program, "in_RayMarchIterations"),
                 static_cast<int>(ray_iterations));
 
+    // Color
+    glUniform3f(glGetUniformLocation(program, "in_PrimaryColor"), primary_color.r, primary_color.g,
+                primary_color.b);
+    glUniform3f(glGetUniformLocation(program, "in_SecondaryColor"), secondary_color.r, secondary_color.g,
+                secondary_color.b);
+    glUniform3f(glGetUniformLocation(program, "in_GlowColor"), glow_color.r, glow_color.g,
+                glow_color.b);
+
+    glUniform1f(glGetUniformLocation(program, "in_Gradient"), gradient);
+    glUniform1f(glGetUniformLocation(program, "in_GlowAmount"), glow_amount);
+
     for (Operation *op : ops) {
         op->upload(program);
     }

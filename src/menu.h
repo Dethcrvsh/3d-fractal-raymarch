@@ -1,8 +1,7 @@
 #include "LittleOBJLoader.h"
+#include <array>
 #include "SimpleGUI.h"
 #include <initializer_list>
-#include <iostream>
-#include <random>
 #include <string>
 #include <variant>
 #include <vector>
@@ -81,7 +80,8 @@ private:
     std::vector<std::variant<Row *, Section *>> children{};
 };
 
-int const SLIDER_LENGTH = 500;
+int const SLIDER_LENGTH = 400;
+int const COLOR_SLIDER_LENGTH = 100;
 void onButtonPress(int id);
 void onCreateOperation(int id);
 
@@ -156,12 +156,61 @@ struct BoxFold : public Operation {
     void upload(GLuint program) override;
 };
 
+struct SphereFold: public Operation {
+    constexpr float static const MIN{0};
+    constexpr float static const MAX{5};
+
+    float fixed_radius{2};
+    std::string fixed_radius_var {gen_var_name()};
+
+    SphereFold(int const &x, int const &y, std::string const &title,
+            Section *parent = nullptr, bool close_button = false);
+
+    std::string s_get_variable() override;
+    std::string s_get_code() const override;
+    void upload(GLuint program) override;
+};
+
+struct SierpinskiFold: public Operation {
+    constexpr float static const MIN{0};
+    constexpr float static const MAX{5};
+
+    float fold_limit{1};
+    std::string fold_limit_var {gen_var_name()};
+
+    SierpinskiFold(int const &x, int const &y, std::string const &title,
+            Section *parent = nullptr, bool close_button = false);
+
+    std::string s_get_variable() override;
+    std::string s_get_code() const override;
+    void upload(GLuint program) override;
+};
+
+struct OctahedralFold: public Operation {
+    constexpr float static const MIN{0};
+    constexpr float static const MAX{5};
+
+    float fold_limit{1};
+    std::string fold_limit_var {gen_var_name()};
+
+    OctahedralFold(int const &x, int const &y, std::string const &title,
+            Section *parent = nullptr, bool close_button = false);
+
+    std::string s_get_variable() override;
+    std::string s_get_code() const override;
+    void upload(GLuint program) override;
+};
+
+
 /* Map button presses to the creation of operations */
 struct OperationMap {
     int rotation_x;
     int rotation_y;
     int rotation_z;
     int box_fold;
+    int sphere_fold;
+    int sierpinski_fold;
+    int octahedral_fold;
 
     void create(int id, Section *parent);
 };
@@ -175,6 +224,13 @@ struct Parameters {
     // Ray march
     float min_dist{0.05};
     float ray_iterations{32};
+
+    // Color
+    vec3 primary_color{0.7, 0.0, 0.8};
+    vec3 secondary_color{0.0, 0.0, 1.0};
+    vec3 glow_color{0.0, 1.0, 0.0};
+    float gradient{0.01};
+    float glow_amount{};
 
     std::vector<Operation *> ops{};
 

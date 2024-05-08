@@ -14,6 +14,13 @@ uniform int in_DistEstIter;
 uniform float in_RayMarchMinDist;
 uniform int in_RayMarchIterations;
 
+// Color
+uniform vec3 in_PrimaryColor;
+uniform vec3 in_SecondaryColor;
+uniform vec3 in_GlowColor;
+uniform float in_Gradient;
+uniform float in_GlowAmount;
+
 out vec4 out_Color;
 
 /* INSERT INPUT */
@@ -37,9 +44,8 @@ void box_fold(inout vec4 z, const float fold_limit)
     z.xyz = clamp(z.xyz, -fold_limit, fold_limit) * 2 - z.xyz;
 }
 
-void sphereFold(inout vec4 z, inout float dz) {
+void sphere_fold(inout vec4 z, inout float dz, const float fixedRadius) {
     float minRadius = 0.0001;
-    float fixedRadius = 1.0;
     float r = dot(z,z);
     if (r<minRadius) { 
             // linear inner scaling
@@ -72,7 +78,7 @@ void octahedral_symmetry_fold(inout vec4 point, const float limit)
     }
 }
 
-void sierpinskiFold(inout vec4 z, const float limit) {
+void sierpinski_fold(inout vec4 z, const float limit) {
 	z.xy -= min(z.x + z.y + limit, 0.0);
 	z.xz -= min(z.x + z.z + limit, 0.0);
 	z.yz -= min(z.y + z.z + limit, 0.0);
@@ -99,9 +105,6 @@ float estimate_distance(const vec3 p)
 
     for (int i = 0; i < in_DistEstIter; i++)
     {
-	    // box_fold(z, 1);
-     //    sphereFold(z, dr);
-
         /* INSERT CODE */
 
         z = z * in_Scale + vec4(in_Offset, 0) *in_Scale;
@@ -151,8 +154,8 @@ MarchResult ray_march(const vec3 start, const vec3 dir)
 vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 {
     // Calculate color from distance to origin
-    float gradient = min(10, length(curr_pos))/10;
-    vec3 color = vec3(0.7, 0.8, 0.7)*(gradient) + vec3(0.7, 0.8, 0.7)*(1 - gradient);
+    float gradient = min(in_Gradient, length(curr_pos))/in_Gradient;
+    vec3 color = in_PrimaryColor*(gradient) + in_SecondaryColor*(1 - gradient);
 
     // Calculate ambient occlusion
     vec4 amb_color = vec4((color), 1); //* max(0.3, pow(0.98, iter)), 1.0);
@@ -195,8 +198,8 @@ vec4 get_hit_color(const int iter, const vec3 curr_pos, const vec3 dir)
 
 vec4 get_bg_color(const float closest_dist)
 {
-    float gradient = min(0.5, closest_dist)/0.5;
-    vec3 color = vec3(0.0, 0.0, 0.0) * (gradient) + vec3(0.6, 0.0, 0.6) * (1-gradient);
+    float gradient = min(in_GlowAmount, closest_dist)/in_GlowAmount;
+    vec3 color = vec3(0.0, 0.0, 0.0) * (gradient) + in_GlowColor * (1-gradient);
 	return vec4(color, 1.0);
 }
 

@@ -1,5 +1,5 @@
 #include "menu.h"
-#include <array>
+#include <random>
 
 Menu::Operation::Operation(int const &x, int const &y, std::string const &title,
                            Section *parent, bool close_button)
@@ -34,6 +34,15 @@ void Menu::OperationMap::create(int id, Section *parent) {
         parent->add_section(op);
     } else if (id == box_fold) {
         Operation *op = new BoxFold(0, 0, "BoxFold", parent, true);
+        parent->add_section(op);
+    } else if (id == sphere_fold) {
+        Operation *op = new SphereFold(0, 0, "SphereFold", parent, true);
+        parent->add_section(op);
+    } else if (id == sierpinski_fold) {
+        Operation *op = new SierpinskiFold(0, 0, "SierpinskiFold", parent, true);
+        parent->add_section(op);
+    } else if (id == octahedral_fold) {
+        Operation *op = new OctahedralFold(0, 0, "OctahedralFold", parent, true);
         parent->add_section(op);
     }
 }
@@ -126,6 +135,66 @@ std::string Menu::BoxFold::s_get_code() const {
 
 }
 void Menu::BoxFold::upload(GLuint program) {
+    glUniform1f(glGetUniformLocation(program, fold_limit_var.c_str()), fold_limit);
+}
+
+/* SPHERE FOLD */
+
+Menu::SphereFold::SphereFold(int const &x, int const &y,
+                             std::string const &title, Section *parent,
+                             bool close_button)
+: Operation(x, y, title, parent, close_button) {
+    createSliderDisplay(&fixed_radius, "fixed radius: ", MIN, MAX, this);
+}
+
+std::string Menu::SphereFold::s_get_variable() {
+    return "uniform float " + fixed_radius_var + ";"; 
+}
+std::string Menu::SphereFold::s_get_code() const {
+    return "sphere_fold(z, dr, " + fixed_radius_var + ");";
+
+}
+void Menu::SphereFold::upload(GLuint program) {
+    glUniform1f(glGetUniformLocation(program, fixed_radius_var.c_str()), fixed_radius);
+}
+
+/* SIERPINSKI FOLD */
+
+Menu::SierpinskiFold::SierpinskiFold(int const &x, int const &y,
+                             std::string const &title, Section *parent,
+                             bool close_button)
+: Operation(x, y, title, parent, close_button) {
+    createSliderDisplay(&fold_limit, "fold limit: ", MIN, MAX, this);
+}
+
+std::string Menu::SierpinskiFold::s_get_variable() {
+    return "uniform float " + fold_limit_var + ";"; 
+}
+std::string Menu::SierpinskiFold::s_get_code() const {
+    return "sierpinski_fold(z, " + fold_limit_var + ");";
+
+}
+void Menu::SierpinskiFold::upload(GLuint program) {
+    glUniform1f(glGetUniformLocation(program, fold_limit_var.c_str()), fold_limit);
+}
+
+/* OCTAHEDRAL FOLD */
+
+Menu::OctahedralFold::OctahedralFold(int const &x, int const &y,
+                             std::string const &title, Section *parent,
+                             bool close_button)
+: Operation(x, y, title, parent, close_button) {
+    createSliderDisplay(&fold_limit, "fold limit: ", MIN, MAX, this);
+}
+
+std::string Menu::OctahedralFold::s_get_variable() {
+    return "uniform float " + fold_limit_var + ";"; 
+}
+std::string Menu::OctahedralFold::s_get_code() const {
+    return "octahedral_symmetry_fold(z, " + fold_limit_var + ");";
+
+}
+void Menu::OctahedralFold::upload(GLuint program) {
     glUniform1f(glGetUniformLocation(program, fold_limit_var.c_str()), fold_limit);
 }
 

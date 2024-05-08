@@ -97,7 +97,6 @@ void Section::toggle(int id, bool root_visibility, bool set_visibility) {
         root_visibility = this->visible;
     }
 
-
     if (set_visibility) {
         // The menu and title should always have the root visibility
         if (id != button_id) {
@@ -121,7 +120,6 @@ void Section::toggle(int id, bool root_visibility, bool set_visibility) {
             }
         }
     }
-
 }
 
 void Section::update_height(int const& new_height) {

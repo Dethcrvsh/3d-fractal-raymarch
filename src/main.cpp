@@ -37,6 +37,9 @@ float rotation1 = 0;
 float rotation2 = 0;
 vec3 offset = vec3(0.0, 0.0, 0.0);
 
+unsigned key_timer {};
+int const KEY_DELAY = 500;
+
 void init_arrays() {
     // vertex buffer object, used for uploading the geometry
     unsigned int vertex_buffer_obj_id;
@@ -126,8 +129,9 @@ void do_movement(float const delta)
         camera.pos.x += delta * cos(camera.angle.x) * MOVE_SPEED;
         camera.pos.z += delta * sin(camera.angle.x) * MOVE_SPEED;
     }
-    if (glutKeyIsDown(GLUT_KEY_ESC)){
+    if (glutKeyIsDown(GLUT_KEY_ESC) && key_timer > KEY_DELAY){
         in_menu = not in_menu;
+        key_timer = 0;
     }
 }
 
@@ -137,6 +141,7 @@ void display(void)
     GLfloat time = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
     float const delta = time - previous_time;
     previous_time = time;
+    key_timer += delta;
 
     // Upload the menu parameters to the shaders
     Menu::Parameters *params {Menu::get_parameters()};
