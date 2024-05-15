@@ -82,7 +82,7 @@ void init(void)
 }
 
 const float MOVE_SPEED = 0.0015;
-const float MOUSE_SENSITIVITY = 1000;
+const float MOUSE_SENSITIVITY = 10000;
 
 struct Camera
 {
